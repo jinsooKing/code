@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PPMS - 생산일정등록</title>
+    <link rel="stylesheet" href="common.css">
+    <link rel="stylesheet" href="header.css">
+    <link rel="stylesheet" href="footer.css">
+    <link href="https://hangeul.pstatic.net/hangeul_static/css/bmdohyeon.css" rel="stylesheet">
+    <link href="https://hangeul.pstatic.net/hangeul_static/css/bmjua.css" rel="stylesheet">
+</head>
+<body>
+    <div class="page-container">
+        <header class="main-header">
+            <div class="header-left"><a href="index.html"><picture><source srcset="logo.avif" type="image/avif"><img src="logo.png" alt="필리아텔레콤 로고" class="header-logo"></picture></a></div>
+            <div class="header-center"><div class="common-box font-35pt">생산일정등록</div></div>
+            <div class="header-right"><div class="common-box font-15pt time-display" id="current-time"></div></div>
+        </header>
+        <main class="content-area">
+            <div class="grid-container" id="week-schedule-grid"></div>
+        </main>
+        <footer class="main-footer">
+            <div class="footer-left"></div>
+            <div class="footer-center"><div class="common-box font-15pt">(주)필리아텔레콤</div></div>
+            <div class="footer-right"></div>
+        </footer>
+    </div>
+    <div class="modal-overlay" id="schedule-modal">
+        <div class="modal-window">
+            <button class="close-btn" id="close-modal-btn">&times;</button>
+            <h2 class="modal-title" id="modal-title"></h2>
+            <div class="modal-content">
+                <section class="line-schedule-section">
+                    <div class="line-header"><h3 class="line-title">A라인</h3><div class="action-buttons"><button class="plus-btn" data-line="A">+</button><button class="minus-btn" data-line="A">-</button></div></div>
+                    <div class="table-container"><table class="editable-table"><thead><tr><th>생산라인</th><th>업체</th><th>모델명</th><th>LOT</th><th>생산예정일</th></tr></thead><tbody id="schedule-table-body-A"></tbody></table></div>
+                </section>
+                <section class="line-schedule-section">
+                    <div class="line-header"><h3 class="line-title">B라인</h3><div class="action-buttons"><button class="plus-btn" data-line="B">+</button><button class="minus-btn" data-line="B">-</button></div></div>
+                    <div class="table-container"><table class="editable-table"><thead><tr><th>생산라인</th><th>업체</th><th>모델명</th><th>LOT</th><th>생산예정일</th></tr></thead><tbody id="schedule-table-body-B"></tbody></table></div>
+                </section>
+                <section class="line-schedule-section">
+                    <div class="line-header"><h3 class="line-title">C라인</h3><div class="action-buttons"><button class="plus-btn" data-line="C">+</button><button class="minus-btn" data-line="C">-</button></div></div>
+                    <div class="table-container"><table class="editable-table"><thead><tr><th>생산라인</th><th>업체</th><th>모델명</th><th>LOT</th><th>생산예정일</th></tr></thead><tbody id="schedule-table-body-C"></tbody></table></div>
+                </section>
+            </div>
+            <div class="modal-footer">
+                <div class="common-box font-15pt clickable-box" id="save-all-btn">저장</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const modalOverlay = document.getElementById('schedule-modal');
+        const modalWindow = modalOverlay.querySelector('.modal-window');
+        const modalTitle = document.getElementById('modal-title');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const saveAllBtn = document.getElementById('save-all-btn');
+        let currentSelectedWeekInfo = {};
+        const lineControls = {
+            'A': { tableBody: document.getElementById('schedule-table-body-A'), addBtn: document.querySelector('.plus-btn[data-line="A"]'), removeBtn: document.querySelector('.minus-btn[data-line="A"]') },
+            'B': { tableBody: document.getElementById('schedule-table-body-B'), addBtn: document.querySelector('.plus-btn[data-line="B"]'), removeBtn: document.querySelector('.minus-btn[data-line="B"]') },
+            'C': { tableBody: document.getElementById('schedule-table-body-C'), addBtn: document.querySelector('.plus-btn[data-line="C"]'), removeBtn: document.querySelector('.minus-btn[data-line="C"]') }
+        };
+
+        saveAllBtn.addEventListener('click', () => {
+            const allSchedules = [];
+            for (const line in lineControls) {
+                const tableBody = lineControls[line].tableBody;
+                const rows = tableBody.querySelectorAll('tr');
+                rows.forEach(row => {
+                    const inputs = row.querySelectorAll('input'); // 행 안의 모든 input 요소를 가져옴
+                    const selects = row.querySelectorAll('select');
+                    
+                    // [수정] 올바른 순서로 데이터를 읽어옵니다.
+                    // input[0] = 업체, input[1] = 모델명, input[2] = LOT
+                    const company = inputs[0].value;
+                    const model = inputs[1].value;
+                    const lot = inputs[2].value;
+                    
+                    if (company || model || lot) {
+                        const scheduleData = {
+                            line: row.querySelector('.line-cell').textContent,
+                            company: company,
+                            model: model,
+                            lot: lot,
+                            startDate: selects[0].value,
+                            endDate: selects[1].value
+                        };
+                        allSchedules.push(scheduleData);
+                    }
+                });
+            }
+            const storageKey = `week-${currentSelectedWeekInfo.year}-${currentSelectedWeekInfo.month}-${currentSelectedWeekInfo.weekNum}`;
+            sessionStorage.setItem(storageKey, JSON.stringify(allSchedules));
+            if (allSchedules.length > 0) {
+                alert(`${allSchedules.length}개의 일정이 브라우저에 임시 저장되었습니다.`);
+            } else {
+                alert("해당 주차의 일정이 모두 비워진 상태로 저장되었습니다.");
+            }
+        });
+
+        // (이하 모든 함수는 이전과 동일합니다.)
+        function openModal(weekInfo) {
+            currentSelectedWeekInfo = weekInfo;
+            modalTitle.textContent = `${weekInfo.month}월${weekInfo.weekNum}주차 일정`;
+            const storageKey = `week-${weekInfo.year}-${weekInfo.month}-${weekInfo.weekNum}`;
+            const savedData = JSON.parse(sessionStorage.getItem(storageKey)) || [];
+            for (const line in lineControls) {
+                lineControls[line].tableBody.innerHTML = '';
+            }
+            if (savedData.length > 0) {
+                savedData.forEach(data => {
+                    const tableBody = lineControls[data.line].tableBody;
+                    const newRow = addNewScheduleRow(tableBody, data.line);
+                    const inputs = newRow.querySelectorAll('input');
+                    const selects = newRow.querySelectorAll('select');
+                    // [수정] 올바른 순서로 데이터를 복원합니다.
+                    inputs[0].value = data.company;
+                    inputs[1].value = data.model;
+                    inputs[2].value = data.lot;
+                    selects[0].value = data.startDate;
+                    selects[1].value = data.endDate;
+                });
+            } else {
+                for (const line in lineControls) {
+                    for (let i = 0; i < 5; i++) {
+                        addNewScheduleRow(lineControls[line].tableBody, line);
+                    }
+                }
+            }
+            modalOverlay.classList.add('visible');
+        }
+        function closeModal() { modalOverlay.classList.remove('visible'); }
+        function removeLastScheduleRow(targetTableBody) {
+            const rowCount = targetTableBody.rows.length;
+            if (rowCount > 0) {
+                targetTableBody.deleteRow(rowCount - 1);
+            }
+        }
+        function addNewScheduleRow(targetTableBody, line) {
+            const newRow = targetTableBody.insertRow();
+            const lineCell = `<td class="line-cell">${line}</td>`;
+            const textInputCell = `<td><input type="text"></td>`;
+            const dateCell = `<td><div class="date-select-group"><select class="start-date-select"></select><span>~</span><select class="end-date-select"></select></div></td>`;
+            newRow.innerHTML = lineCell + textInputCell + textInputCell + textInputCell + dateCell;
+            populateDateSelectors(currentSelectedWeekInfo, newRow);
+            return newRow;
+        }
+        closeModalBtn.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', closeModal);
+        modalWindow.addEventListener('click', (e) => e.stopPropagation());
+        for (const line in lineControls) {
+            const control = lineControls[line];
+            const currentLine = line;
+            control.addBtn.addEventListener('click', () => addNewScheduleRow(control.tableBody, currentLine));
+            control.removeBtn.addEventListener('click', () => removeLastScheduleRow(control.tableBody));
+        }
+        function populateDateSelectors(weekInfo, row) {
+            if (!row || !weekInfo.year) return;
+            const startDateSelect = row.querySelector('.start-date-select');
+            const endDateSelect = row.querySelector('.end-date-select');
+            startDateSelect.innerHTML = ''; endDateSelect.innerHTML = '';
+            const weekdays = getWeekdaysForWeek(weekInfo.year, weekInfo.month - 1, weekInfo.weekNum);
+            const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+            weekdays.forEach(item => {
+                const optionText = `${item.month}/${item.day}(${dayNames[item.dayOfWeek]})`;
+                const startOption = document.createElement('option');
+                startOption.value = optionText;
+                startOption.textContent = optionText;
+                startDateSelect.appendChild(startOption);
+                const endOption = document.createElement('option');
+                endOption.value = optionText;
+                endOption.textContent = optionText;
+                endDateSelect.appendChild(endOption);
+            });
+        }
+        function getProductionWeeksInMonth(year, month) {
+            const productionWeeks = new Set();
+            const lastDateOfMonth = new Date(year, month + 1, 0).getDate();
+            for (let day = 1; day <= lastDateOfMonth; day++) {
+                const currentDate = new Date(year, month, day);
+                const dayOfWeek = currentDate.getDay();
+                if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+                    const firstDayOfMonth = new Date(year, month, 1).getDay();
+                    const weekNumber = Math.ceil((day + firstDayOfMonth) / 7);
+                    productionWeeks.add(weekNumber);
+                }
+            }
+            return productionWeeks;
+        }
+        function getWeekdaysForWeek(year, month, weekNum) {
+            const weekdays = [];
+            const firstDateOfMonth = new Date(year, month, 1);
+            const firstDayOfWeek = firstDateOfMonth.getDay();
+            let date = new Date(firstDateOfMonth);
+            date.setDate(date.getDate() - firstDayOfWeek);
+            date.setDate(date.getDate() + (weekNum - 1) * 7);
+            for (let i = 0; i < 7; i++) {
+                const currentDate = new Date(date);
+                currentDate.setDate(date.getDate() + i);
+                const dayOfWeek = currentDate.getDay();
+                if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+                    weekdays.push({ year: currentDate.getFullYear(), month: currentDate.getMonth() + 1, day: currentDate.getDate(), dayOfWeek: dayOfWeek });
+                }
+            }
+            return weekdays;
+        }
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth();
+        const dayOfMonth = today.getDate();
+        const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+        const currentWeekNumber = Math.ceil((dayOfMonth + firstDayOfMonth) / 7);
+        const productionWeeksSet = getProductionWeeksInMonth(currentYear, currentMonth);
+        const gridContainer = document.getElementById('week-schedule-grid');
+        if (productionWeeksSet.size <= 4) { gridContainer.classList.add('grid-layout-2-col'); } else { gridContainer.classList.add('grid-layout-3-col'); }
+        const weekNumbers = Array.from(productionWeeksSet).sort((a, b) => a - b);
+        for (const weekNum of weekNumbers) {
+            const weekBox = document.createElement('div');
+            weekBox.className = 'week-box'; 
+            if (weekNum === currentWeekNumber) { weekBox.classList.add('current-week'); }
+            const weekTitle = `${currentMonth + 1}월${weekNum}주차`;
+            weekBox.textContent = weekTitle;
+            const weekInfo = { year: currentYear, month: currentMonth + 1, weekNum: weekNum };
+            weekBox.addEventListener('click', () => openModal(weekInfo));
+            gridContainer.appendChild(weekBox);
+        }
+        function updateTime() {
+            const timeDisplay = document.getElementById('current-time');
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const formattedTime = `${year}년 ${month}월 ${day}일 ${hours}시 ${minutes}분`;
+            timeDisplay.textContent = formattedTime;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+    </script>
+</body>
+</html>

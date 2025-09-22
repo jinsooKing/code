@@ -1,0 +1,21 @@
+/* 초기화면의 크고 입체적인 그리드 UI 스타일 */
+.grid-item {
+    font-family: 'BMJUA', sans-serif;
+    font-size: 45pt;
+    font-weight: bold;
+    background-color: #000000;
+    color: #FFFFFF;
+    padding: 40px 80px;
+    border-radius: 20px;
+    text-align: center;
+    border: 2px solid #555;
+    border-bottom: 10px solid #444;
+    box-shadow: 0 8px 12px rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: all 0.1s ease-out;
+}
+.grid-item:active {
+    transform: translateY(6px);
+    border-bottom-width: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
