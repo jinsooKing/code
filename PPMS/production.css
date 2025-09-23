@@ -1,10 +1,10 @@
-/* [수정] 기본 정렬은 유지하되, 필요 시 중앙 정렬을 위한 클래스 추가 */
 .content-area {
-    align-items: flex-start;
+    /* 기본 정렬을 중앙으로 유지 */
 }
-.content-area.center-content {
-    align-items: center;
-    justify-content: center;
+
+/* 일정 표가 표시될 때만 상단 정렬을 적용하기 위한 클래스 */
+.content-area.align-top {
+    align-items: flex-start;
 }
 
 #schedule-display-area {
@@ -12,7 +12,6 @@
     margin-top: 30px;
 }
 
-/* [추가] 라인별 데이터가 없을 때 표시할 메시지 스타일 */
 .no-line-data-message {
     font-family: 'BMDOHYEON', sans-serif;
     font-size: 16pt;
@@ -23,4 +22,36 @@
     border: 1px dashed #555;
     border-radius: 8px;
     margin-top: 10px;
+}
+
+/* 이전 데이터 선택 화면을 위한 스타일 */
+.period-selector-grid {
+    display: grid;
+    /* [수정] 3열 고정 그리드로 변경 */
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.period-btn {
+    font-family: 'BMJUA', sans-serif;
+    font-size: 23pt;
+    font-weight: bold;
+    background-color: #000000;
+    color: #FFFFFF;
+    padding: 20px 40px;
+    border-radius: 15px;
+    text-align: center;
+    border: 1px solid #555;
+    border-bottom: 5px solid #444;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: all 0.1s ease-out;
+}
+.period-btn:hover {
+    background-color: #3A3A3C;
+}
+.period-btn:active {
+    transform: translateY(3px);
+    border-bottom-width: 2px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }

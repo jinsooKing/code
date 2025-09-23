@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="common.css">
     <link rel="stylesheet" href="header.css">
     <link rel="stylesheet" href="footer.css">
+    <link rel="stylesheet" href="production-schedule-reg.css">
     <link href="https://hangeul.pstatic.net/hangeul_static/css/bmdohyeon.css" rel="stylesheet">
     <link href="https://hangeul.pstatic.net/hangeul_static/css/bmjua.css" rel="stylesheet">
 </head>
@@ -22,29 +23,58 @@
         </main>
         <footer class="main-footer">
             <div class="footer-left"></div>
-            <div class="footer-center"><div class="common-box font-15pt">(주)필리아텔레콤</div></div>
+            <div class="footer-center"><a href="javascript:history.back()"><div class="common-box font-15pt clickable-box">뒤로 가기</div></a></div>
             <div class="footer-right"></div>
         </footer>
     </div>
+    
     <div class="modal-overlay" id="schedule-modal">
         <div class="modal-window">
             <button class="close-btn" id="close-modal-btn">&times;</button>
             <h2 class="modal-title" id="modal-title"></h2>
             <div class="modal-content">
                 <section class="line-schedule-section">
-                    <div class="line-header"><h3 class="line-title">A라인</h3><div class="action-buttons"><button class="plus-btn" data-line="A">+</button><button class="minus-btn" data-line="A">-</button></div></div>
-                    <div class="table-container"><table class="editable-table"><thead><tr><th>생산라인</th><th>업체</th><th>모델명</th><th>LOT</th><th>생산예정일</th></tr></thead><tbody id="schedule-table-body-A"></tbody></table></div>
+                    <div class="line-header">
+                        <h3 class="line-title">A라인</h3>
+                        <div class="action-buttons"><button class="plus-btn" data-line="A">+</button><button class="minus-btn" data-line="A">-</button></div>
+                    </div>
+                    <div class="table-container">
+                        <table class="editable-table registration-table">
+                            <colgroup><col style="width: 10%;"><col style="width: 20%;"><col style="width: 50%;"><col style="width: 8%;"><col style="width: 12%;"></colgroup>
+                            <thead><tr><th>생산라인</th><th>업체</th><th>모델명</th><th>LOT</th><th>생산예정일</th></tr></thead>
+                            <tbody id="schedule-table-body-A"></tbody>
+                        </table>
+                    </div>
                 </section>
                 <section class="line-schedule-section">
-                    <div class="line-header"><h3 class="line-title">B라인</h3><div class="action-buttons"><button class="plus-btn" data-line="B">+</button><button class="minus-btn" data-line="B">-</button></div></div>
-                    <div class="table-container"><table class="editable-table"><thead><tr><th>생산라인</th><th>업체</th><th>모델명</th><th>LOT</th><th>생산예정일</th></tr></thead><tbody id="schedule-table-body-B"></tbody></table></div>
+                    <div class="line-header">
+                        <h3 class="line-title">B라인</h3>
+                        <div class="action-buttons"><button class="plus-btn" data-line="B">+</button><button class="minus-btn" data-line="B">-</button></div>
+                    </div>
+                    <div class="table-container">
+                        <table class="editable-table registration-table">
+                           <colgroup><col style="width: 10%;"><col style="width: 20%;"><col style="width: 50%;"><col style="width: 8%;"><col style="width: 12%;"></colgroup>
+                           <thead><tr><th>생산라인</th><th>업체</th><th>모델명</th><th>LOT</th><th>생산예정일</th></tr></thead>
+                            <tbody id="schedule-table-body-B"></tbody>
+                        </table>
+                    </div>
                 </section>
                 <section class="line-schedule-section">
-                    <div class="line-header"><h3 class="line-title">C라인</h3><div class="action-buttons"><button class="plus-btn" data-line="C">+</button><button class="minus-btn" data-line="C">-</button></div></div>
-                    <div class="table-container"><table class="editable-table"><thead><tr><th>생산라인</th><th>업체</th><th>모델명</th><th>LOT</th><th>생산예정일</th></tr></thead><tbody id="schedule-table-body-C"></tbody></table></div>
+                    <div class="line-header">
+                        <h3 class="line-title">C라인</h3>
+                        <div class="action-buttons"><button class="plus-btn" data-line="C">+</button><button class="minus-btn" data-line="C">-</button></div>
+                    </div>
+                    <div class="table-container">
+                        <table class="editable-table registration-table">
+                            <colgroup><col style="width: 10%;"><col style="width: 20%;"><col style="width: 50%;"><col style="width: 8%;"><col style="width: 12%;"></colgroup>
+                            <thead><tr><th>생산라인</th><th>업체</th><th>모델명</th><th>LOT</th><th>생산예정일</th></tr></thead>
+                            <tbody id="schedule-table-body-C"></tbody>
+                        </table>
+                    </div>
                 </section>
             </div>
             <div class="modal-footer">
+                <div class="common-box font-15pt clickable-box reset-btn" id="reset-btn">초기화</div>
                 <div class="common-box font-15pt clickable-box" id="save-all-btn">저장</div>
             </div>
         </div>
@@ -56,6 +86,7 @@
         const modalTitle = document.getElementById('modal-title');
         const closeModalBtn = document.getElementById('close-modal-btn');
         const saveAllBtn = document.getElementById('save-all-btn');
+        const resetBtn = document.getElementById('reset-btn'); // 초기화 버튼 요소
         let currentSelectedWeekInfo = {};
         const lineControls = {
             'A': { tableBody: document.getElementById('schedule-table-body-A'), addBtn: document.querySelector('.plus-btn[data-line="A"]'), removeBtn: document.querySelector('.minus-btn[data-line="A"]') },
@@ -63,21 +94,37 @@
             'C': { tableBody: document.getElementById('schedule-table-body-C'), addBtn: document.querySelector('.plus-btn[data-line="C"]'), removeBtn: document.querySelector('.minus-btn[data-line="C"]') }
         };
 
+        // --- '초기화' 버튼 이벤트 리스너 추가 ---
+        resetBtn.addEventListener('click', () => {
+            if (confirm('정말로 해당 주차의 모든 일정을 초기화하시겠습니까?\n임시 저장된 내용이 삭제됩니다.')) {
+                // 1. sessionStorage에서 데이터 삭제
+                const storageKey = `week-${currentSelectedWeekInfo.year}-${currentSelectedWeekInfo.month}-${currentSelectedWeekInfo.weekNum}`;
+                sessionStorage.removeItem(storageKey);
+
+                // 2. 화면의 테이블들을 비우고 기본 5줄로 리셋
+                for (const line in lineControls) {
+                    const control = lineControls[line];
+                    control.tableBody.innerHTML = ''; // 테이블 내용 삭제
+                    for (let i = 0; i < 5; i++) {
+                        addNewScheduleRow(control.tableBody, line);
+                    }
+                }
+                alert('일정이 초기화되었습니다.');
+            }
+        });
+
+        // --- '저장' 버튼 이벤트 리스너 ---
         saveAllBtn.addEventListener('click', () => {
             const allSchedules = [];
             for (const line in lineControls) {
                 const tableBody = lineControls[line].tableBody;
                 const rows = tableBody.querySelectorAll('tr');
                 rows.forEach(row => {
-                    const inputs = row.querySelectorAll('input'); // 행 안의 모든 input 요소를 가져옴
+                    const inputs = row.querySelectorAll('input');
                     const selects = row.querySelectorAll('select');
-                    
-                    // [수정] 올바른 순서로 데이터를 읽어옵니다.
-                    // input[0] = 업체, input[1] = 모델명, input[2] = LOT
                     const company = inputs[0].value;
                     const model = inputs[1].value;
                     const lot = inputs[2].value;
-                    
                     if (company || model || lot) {
                         const scheduleData = {
                             line: row.querySelector('.line-cell').textContent,
@@ -99,8 +146,6 @@
                 alert("해당 주차의 일정이 모두 비워진 상태로 저장되었습니다.");
             }
         });
-
-        // (이하 모든 함수는 이전과 동일합니다.)
         function openModal(weekInfo) {
             currentSelectedWeekInfo = weekInfo;
             modalTitle.textContent = `${weekInfo.month}월${weekInfo.weekNum}주차 일정`;
@@ -115,7 +160,6 @@
                     const newRow = addNewScheduleRow(tableBody, data.line);
                     const inputs = newRow.querySelectorAll('input');
                     const selects = newRow.querySelectorAll('select');
-                    // [수정] 올바른 순서로 데이터를 복원합니다.
                     inputs[0].value = data.company;
                     inputs[1].value = data.model;
                     inputs[2].value = data.lot;

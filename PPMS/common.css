@@ -200,8 +200,8 @@ table.editable-table {
     width: 100%;
     border-collapse: collapse;
     font-family: inherit;
-    table-layout: fixed;
 }
+
 .editable-table th, .editable-table td {
     padding: 8px;
     text-align: center;
@@ -209,7 +209,7 @@ table.editable-table {
     border-right: 1px solid #FFFFFF;
     color: #FFFFFF;
     font-size: 14pt;
-    font-weight: inherit;
+    font-weight: bold; /* 'inherit'에서 'bold'로 변경 */
 }
 .editable-table thead th {
     background-color: #3A3A3C;
@@ -219,24 +219,32 @@ table.editable-table {
 .editable-table th:last-child, .editable-table td:last-child {
     border-right: none;
 }
-/* (상략)... .editable-table th:last-child 스타일까지는 모두 동일 ... */
 
-.editable-table thead th:nth-child(1) { width: 3%; }  /* 생산라인 */
-.editable-table thead th:nth-child(2) { width: 5%; }  /* 담당자 */
-.editable-table thead th:nth-child(3) { width: 10%; } /* 업체 */
-.editable-table thead th:nth-child(4) { width: 29%; } /* 모델명 */
-.editable-table thead th:nth-child(5) { width: 12%; }  /* T/B */
-.editable-table thead th:nth-child(6) { width: 7%; }  /* 실생산 */
-.editable-table thead th:nth-child(7) { width: 7%; }  /* LOT */
-.editable-table thead th:nth-child(8) { width: 7%; }/* 생산시작일 */
-.editable-table thead th:nth-child(9) { width: 7%; }/* 생산종료일 */
-.editable-table thead th:nth-child(10){ width: 13%; } /* 생산예정일 (축소 및 이동) */
+/* [복원] '생산 페이지'의 10열 테이블 너비 설정 */
+.production-view-table thead th:nth-child(1) { width: 6%; }
+.production-view-table thead th:nth-child(2) { width: 8%; }
+.production-view-table thead th:nth-child(3) { width: 8%; }
+.production-view-table thead th:nth-child(4) { width: 27%; }
+.production-view-table thead th:nth-child(5) { width: 8%; }
+.production-view-table thead th:nth-child(6) { width: 7%; }
+.production-view-table thead th:nth-child(7) { width: 8%; }
+.production-view-table thead th:nth-child(8) { width: 8%; }
+.production-view-table thead th:nth-child(9) { width: 8%; }
+.production-view-table thead th:nth-child(10){ width: 23%; }
 
+.data-cell {
+    padding: 0 !important;
+}
+.data-cell input {
+    /* background-color: #3A3A3C !important; */
+    /* [삭제] 일반 텍스트처럼 보이게 하던 normal 설정을 제거합니다. */
+    /* font-weight: normal !important; */
+}
 
 .editable-table tbody tr:nth-child(even) {
     background-color: #3A3A3C;
 }
-/* (하략)... .editable-table tbody tr:hover 부터 끝까지의 코드는 모두 동일 ... */
+
 .editable-table tbody tr:hover {
     background-color: #555;
 }
@@ -268,13 +276,24 @@ table.editable-table {
     justify-content: center;
     gap: 5px;
 }
+
 .modal-footer {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between; /* 왼쪽과 오른쪽으로 요소를 분리 */
+    align-items: center; /* 세로 중앙 정렬 */
     padding-top: 15px;
     border-top: 1px solid #555;
     flex-shrink: 0;
 }
+
+/* [추가] 초기화 버튼 스타일 */
+.reset-btn {
+    background-color: #721c24; /* 어두운 빨간색 */
+}
+.reset-btn:hover {
+    background-color: #dc3545; /* 밝은 빨간색 */
+}
+
 .no-data-message {
     font-family: 'BMDOHYEON', sans-serif;
     font-size: 24pt;

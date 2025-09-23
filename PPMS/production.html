@@ -25,134 +25,276 @@
 
         <footer class="main-footer">
             <div class="footer-left">
-                <a href="production_schedule_reg.html">
-                    <div class="common-box font-15pt clickable-box">
-                        생산일정등록
-                    </div>
-                </a>
+                <a href="production_schedule_reg.html"><div class="common-box font-15pt clickable-box">생산일정등록</div></a>
             </div>
-            <div class="footer-center"><div class="common-box font-15pt">(주)필리아텔레콤</div></div>
-            <div class="footer-right"></div>
+            <div class="footer-center">
+                <div class="common-box font-15pt clickable-box" id="back-btn">뒤로 가기</div>
+            </div>
+            <div class="footer-right">
+                <div class="common-box font-15pt clickable-box" id="prev-data-btn">이전데이터</div>
+            </div>
         </footer>
     </div>
     
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const today = new Date();
-            const currentYear = today.getFullYear();
-            const currentMonth = today.getMonth();
-            const dayOfMonth = today.getDate();
-            const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
-            const currentWeekNumber = Math.ceil((dayOfMonth + firstDayOfMonth) / 7);
-            const storageKey = `week-${currentYear}-${currentMonth + 1}-${currentWeekNumber}`;
-            const savedData = JSON.parse(sessionStorage.getItem(storageKey)) || [];
-            
-            const displayArea = document.getElementById('schedule-display-area');
+        const displayArea = document.getElementById('schedule-display-area');
+        const contentArea = document.querySelector('.content-area');
+        const prevDataBtn = document.getElementById('prev-data-btn');
+        const backBtn = document.getElementById('back-btn');
+        
+        let currentView = { mode: 'current_week', data: {} };
+        let viewHistory = [];
 
-            displayArea.innerHTML = createScheduleTableHTML(savedData);
-            
-            // 테이블이 생성된 후에 날짜 선택 메뉴를 채웁니다.
-            const weekInfo = { year: currentYear, month: currentMonth + 1, weekNum: currentWeekNumber };
-            populateDateSelectorsForProductionPage(weekInfo);
-        });
+        // --- 메인 이벤트 리스너 ---
+        document.addEventListener('DOMContentLoaded', renderContent);
+        prevDataBtn.addEventListener('click', cycleViewMode);
+        backBtn.addEventListener('click', goBackView);
+        displayArea.addEventListener('click', handlePeriodButtonClick);
+        displayArea.addEventListener('change', handleTableInputChange);
 
-        function createScheduleTableHTML(schedules) {
-            const schedulesByLine = { A: [], B: [], C: [] };
-            // 데이터가 있을 때만 그룹화 진행
-            if (schedules.length > 0) {
-                schedules.forEach(schedule => {
-                    if (schedulesByLine[schedule.line]) {
-                        schedulesByLine[schedule.line].push(schedule);
-                    }
-                });
+        function renderContent() {
+            const { mode } = currentView;
+            if (mode === 'current_week' || mode === 'schedule_view') {
+                contentArea.classList.add('align-top');
+                displayArea.style.marginTop = '30px';
+            } else {
+                contentArea.classList.remove('align-top');
+                displayArea.style.marginTop = '0';
             }
 
+            switch (mode) {
+                case 'past_weeks': displayPastWeeks(); break;
+                case 'past_months': displayPastMonths(currentView.data.year); break;
+                case 'past_years': displayPastYears(); break;
+                case 'weeks_of_month': displayWeeksForMonth(currentView.data.year, currentView.data.month); break;
+                case 'schedule_view': displayScheduleForWeek(currentView.data.year, currentView.data.month, currentView.data.weekNum); break;
+                case 'current_week':
+                default: displayCurrentWeekSchedule(); break;
+            }
+        }
+        
+        // --- 화면 전환 및 히스토리 관리 ---
+        function navigateToView(newMode, data = {}) {
+            viewHistory.push(currentView);
+            currentView = { mode: newMode, data: data };
+            renderContent();
+        }
+
+        function goBackView() {
+            if (viewHistory.length > 0) {
+                currentView = viewHistory.pop();
+                renderContent();
+            } else {
+                history.back();
+            }
+        }
+        
+        function cycleViewMode() {
+            const currentMode = currentView.mode;
+            if (currentMode === 'current_week' || currentMode === 'schedule_view') navigateToView('past_weeks');
+            else if (currentMode === 'past_weeks') navigateToView('past_months', { year: new Date().getFullYear() });
+            else if (currentMode === 'past_months') navigateToView('past_years');
+        }
+
+        function handlePeriodButtonClick(event) {
+            const target = event.target;
+            if (!target.classList.contains('period-btn')) return;
+            const { view, year, month, week } = target.dataset;
+            navigateToView(view, { year: parseInt(year), month: parseInt(month), week: parseInt(week) });
+        }
+
+        // --- 데이터 저장/수정 관리 ---
+        function handleTableInputChange(event) {
+            const target = event.target;
+            const row = target.closest('tr');
+            if (!row) return;
+
+            const rowIndex = row.dataset.rowIndex;
+            const inputType = target.dataset.inputType;
+            const { year, month, weekNum } = currentView.data;
+            const currentWeekStorageKey = `week-${year}-${month}-${weekNum}`;
+            const progressStorageKey = `progress-${currentWeekStorageKey}`;
+
+            if (inputType === 'progress') {
+                saveProductionProgress(rowIndex, progressStorageKey);
+            } else if (inputType === 'original') {
+                updateOriginalSchedule(rowIndex, currentWeekStorageKey);
+            }
+        }
+        
+        function saveProductionProgress(rowIndex, storageKey) {
+            const progressData = JSON.parse(sessionStorage.getItem(storageKey)) || {};
+            const row = document.querySelector(`tr[data-row-index="${rowIndex}"]`);
+            if (!row) return;
+            
+            const inputs = row.querySelectorAll('[data-input-type="progress"]');
+            progressData[rowIndex] = {
+                manager: inputs[0].value,
+                tb: inputs[1].value,
+                actualProd: inputs[2].value,
+                prodStart: inputs[3].value,
+                prodEnd: inputs[4].value
+            };
+            sessionStorage.setItem(storageKey, JSON.stringify(progressData));
+        }
+
+        function updateOriginalSchedule(rowIndex, storageKey) {
+            const originalData = JSON.parse(sessionStorage.getItem(storageKey)) || [];
+            if (!originalData[rowIndex]) return;
+
+            const row = document.querySelector(`tr[data-row-index="${rowIndex}"]`);
+            if (!row) return;
+            
+            const inputs = row.querySelectorAll('[data-input-type="original"]');
+            originalData[rowIndex].company = inputs[0].value;
+            originalData[rowIndex].model = inputs[1].value;
+            originalData[rowIndex].lot = inputs[2].value;
+
+            sessionStorage.setItem(storageKey, JSON.stringify(originalData));
+        }
+
+        // --- 각 뷰를 표시하는 함수들 ---
+        function displayCurrentWeekSchedule() {
+            const today = new Date();
+            currentView = { 
+                mode: 'current_week', 
+                data: { year: today.getFullYear(), month: today.getMonth() + 1, weekNum: getCurrentWeekNumber(today) }
+            };
+            displayScheduleForWeek(currentView.data.year, currentView.data.month, currentView.data.weekNum);
+        }
+        
+        function displayScheduleForWeek(year, month, weekNum) {
+            currentView.data = { year, month, weekNum }; // 현재 뷰 정보 업데이트
+            const storageKey = `week-${year}-${month}-${weekNum}`;
+            const progressKey = `progress-${storageKey}`;
+            const savedData = JSON.parse(sessionStorage.getItem(storageKey)) || [];
+            const progressData = JSON.parse(sessionStorage.getItem(progressKey)) || {};
+            
+            displayArea.innerHTML = createScheduleTableHTML(savedData, progressData);
+            
+            const weekInfo = { year, month, weekNum };
+            populateDateSelectorsForProductionPage(weekInfo, progressData);
+        }
+
+        function displayPastWeeks() { /* ... 이전과 동일 ... */ 
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = today.getMonth() + 1;
+            const currentWeek = getCurrentWeekNumber(today);
+            let contentHTML = `<div class="period-selector-grid">`;
+            for (let i = 1; i <= currentWeek; i++) {
+                contentHTML += `<div class="period-btn" data-view="schedule_view" data-year="${year}" data-month="${month}" data-week="${i}">${month}월 ${i}주차</div>`;
+            }
+            contentHTML += `</div>`;
+            displayArea.innerHTML = contentHTML || `<p class="no-data-message">조회할 주차가 없습니다.</p>`;
+        }
+        function displayPastMonths(year) { /* ... 이전과 동일 ... */ 
+            const today = new Date();
+            const currentMonth = (today.getFullYear() === year) ? today.getMonth() : 11;
+            let contentHTML = `<div class="period-selector-grid">`;
+            for (let i = 0; i <= currentMonth; i++) {
+                contentHTML += `<div class="period-btn" data-view="weeks_of_month" data-year="${year}" data-month="${i + 1}">${i + 1}월</div>`;
+            }
+            contentHTML += `</div>`;
+            displayArea.innerHTML = contentHTML || `<p class="no-data-message">조회할 이전 월이 없습니다.</p>`;
+        }
+        function displayPastYears() { /* ... 이전과 동일 ... */ 
+            const currentYear = new Date().getFullYear();
+            let contentHTML = `<div class="period-selector-grid">`;
+            for (let i = 0; i < 5; i++) {
+                const year = currentYear - i;
+                contentHTML += `<div class="period-btn" data-view="past_months" data-year="${year}">${year}년</div>`;
+            }
+            contentHTML += `</div>`;
+            displayArea.innerHTML = contentHTML;
+        }
+        function displayWeeksForMonth(year, month) { /* ... 이전과 동일 ... */ 
+            const productionWeeksSet = getProductionWeeksInMonth(year, month - 1);
+            const weekNumbers = Array.from(productionWeeksSet).sort((a,b) => a - b);
+            let contentHTML = `<div class="period-selector-grid">`;
+            weekNumbers.forEach(weekNum => {
+                contentHTML += `<div class="period-btn" data-view="schedule_view" data-year="${year}" data-month="${month}" data-week="${weekNum}">${month}월 ${weekNum}주차</div>`;
+            });
+            contentHTML += `</div>`;
+            displayArea.innerHTML = contentHTML;
+        }
+        
+        // --- 헬퍼 함수들 ---
+        function createScheduleTableHTML(schedules, progress) {
+            const schedulesByLine = { A: [], B: [], C: [] };
+            if (schedules.length > 0) {
+                schedules.forEach((schedule, index) => {
+                    schedule.originalIndex = index;
+                    if (schedulesByLine[schedule.line]) { schedulesByLine[schedule.line].push(schedule); }
+                });
+            }
             let tableHTML = '';
             for (const line in schedulesByLine) {
-                tableHTML += `
-                    <section class="line-schedule-section">
-                        <div class="line-header">
-                            <h3 class="line-title">${line}라인</h3>
-                        </div>`;
-                
+                tableHTML += `<section class="line-schedule-section"><div class="line-header"><h3 class="line-title">${line}라인</h3></div>`;
                 if (schedulesByLine[line].length > 0) {
-                    tableHTML += `
-                        <div class="table-container">
-                            <table class="editable-table">
-                                <thead>
-                                    <tr>
-                                        <th>생산라인</th><th>담당자</th><th>업체</th><th>모델명</th><th>T/B</th><th>실생산</th><th>LOT</th><th>생산시작일</th><th>생산종료일</th><th>생산예정일</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${schedulesByLine[line].map(s => `
-                                        <tr>
-                                            <td class="line-cell">${s.line}</td>
-                                            <td><input type="text" class="form-input"></td>
-                                            <td>${s.company}</td>
-                                            <td>${s.model}</td>
-                                            <td>
-                                                <select class="form-select">
-                                                    <option>Top</option>
-                                                    <option>Bottom</option>
-                                                    <option>Top Only</option>
-                                                    <option>Bottom Only</option>
-                                                </select>
-                                            </td>
-                                            <td><input type="text" class="form-input"></td>
-                                            <td>${s.lot}</td>
-                                            <td><select class="form-select prod-start-date"></select></td>
-                                            <td><select class="form-select prod-end-date"></select></td>
-                                            <td>${s.startDate} ~ ${s.endDate}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>`;
-                } else {
-                    tableHTML += `<p class="no-line-data-message">${line}라인은 등록된 생산 일정이 없습니다.</p>`;
-                }
-                
+                    tableHTML += `<div class="table-container"><table class="editable-table production-view-table"><thead><tr><th>생산라인</th><th>담당자</th><th>업체</th><th>모델명</th><th>T/B</th><th>실생산</th><th>LOT</th><th>생산시작일</th><th>생산종료일</th><th>생산예정일</th></tr></thead><tbody>`;
+                    tableHTML += schedulesByLine[line].map(s => {
+                        const prog = progress[s.originalIndex] || {};
+                        return `<tr data-row-index="${s.originalIndex}">
+                                    <td class="line-cell">${s.line}</td>
+                                    <td><input type="text" class="form-input" data-input-type="progress" value="${prog.manager || ''}"></td>
+                                    <td class="data-cell"><input type="text" class="form-input" data-input-type="original" value="${s.company}"></td>
+                                    <td class="data-cell"><input type="text" class="form-input" data-input-type="original" value="${s.model}"></td>
+                                    <td>
+                                        <select class="form-select" data-input-type="progress">
+                                            <option ${prog.tb === 'Top' ? 'selected' : ''}>Top</option>
+                                            <option ${prog.tb === 'Bottom' ? 'selected' : ''}>Bottom</option>
+                                            <option ${prog.tb === 'Top Only' ? 'selected' : ''}>Top Only</option>
+                                            <option ${prog.tb === 'Bottom Only' ? 'selected' : ''}>Bottom Only</option>
+                                        </select>
+                                    </td>
+                                    <td><input type="text" class="form-input" data-input-type="progress" value="${prog.actualProd || ''}"></td>
+                                    <td class="data-cell"><input type="text" class="form-input" data-input-type="original" value="${s.lot}"></td>
+                                    <td><select class="form-select prod-start-date" data-input-type="progress"></select></td>
+                                    <td><select class="form-select prod-end-date" data-input-type="progress"></select></td>
+                                    <td>${s.startDate} ~ ${s.endDate}</td>
+                                </tr>`;
+                    }).join('');
+                    tableHTML += `</tbody></table></div>`;
+                } else { tableHTML += `<p class="no-line-data-message">${line}라인은 등록된 생산 일정이 없습니다.</p>`; }
                 tableHTML += `</section>`;
             }
             return tableHTML;
         }
-
-        function populateDateSelectorsForProductionPage(weekInfo) {
+        function populateDateSelectorsForProductionPage(weekInfo, progressData) {
             const weekdays = getWeekdaysForWeek(weekInfo.year, weekInfo.month - 1, weekInfo.weekNum);
             const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-            
             const allStartDateSelects = document.querySelectorAll('.prod-start-date');
             const allEndDateSelects = document.querySelectorAll('.prod-end-date');
-
-            // [수정] '-' 옵션을 추가하는 로직
-            const createOption = (value, text) => {
-                const option = document.createElement('option');
-                option.value = value;
-                option.textContent = text;
-                return option;
-            };
+            const createOption = (value, text) => { const option = document.createElement('option'); option.value = value; option.textContent = text; return option; };
 
             allStartDateSelects.forEach(select => {
+                const rowIndex = select.closest('tr').dataset.rowIndex;
+                const savedStart = progressData[rowIndex] ? progressData[rowIndex].prodStart : '-';
                 select.innerHTML = '';
-                select.appendChild(createOption('-', '-')); // '-' 옵션 추가
+                select.appendChild(createOption('-', '-'));
                 weekdays.forEach(item => {
                     const optionText = `${item.month}/${item.day}(${dayNames[item.dayOfWeek]})`;
-                    select.appendChild(createOption(optionText, optionText));
+                    const option = createOption(optionText, optionText);
+                    if(optionText === savedStart) option.selected = true;
+                    select.appendChild(option);
                 });
             });
 
             allEndDateSelects.forEach(select => {
+                const rowIndex = select.closest('tr').dataset.rowIndex;
+                const savedEnd = progressData[rowIndex] ? progressData[rowIndex].prodEnd : '-';
                 select.innerHTML = '';
-                select.appendChild(createOption('-', '-')); // '-' 옵션 추가
+                select.appendChild(createOption('-', '-'));
                 weekdays.forEach(item => {
                     const optionText = `${item.month}/${item.day}(${dayNames[item.dayOfWeek]})`;
-                    select.appendChild(createOption(optionText, optionText));
+                    const option = createOption(optionText, optionText);
+                    if(optionText === savedEnd) option.selected = true;
+                    select.appendChild(option);
                 });
             });
         }
-        
-        function getWeekdaysForWeek(year, month, weekNum) {
+        function getWeekdaysForWeek(year, month, weekNum) { /* ... 이전과 동일 ... */ 
             const weekdays = [];
             const firstDateOfMonth = new Date(year, month, 1);
             const firstDayOfWeek = firstDateOfMonth.getDay();
@@ -163,20 +305,32 @@
                 const currentDate = new Date(date);
                 currentDate.setDate(date.getDate() + i);
                 const dayOfWeek = currentDate.getDay();
-                if (dayOfWeek >= 1 && dayOfWeek <= 5) {
-                    weekdays.push({
-                        year: currentDate.getFullYear(),
-                        month: currentDate.getMonth() + 1,
-                        day: currentDate.getDate(),
-                        dayOfWeek: dayOfWeek
-                    });
-                }
+                if (dayOfWeek >= 1 && dayOfWeek <= 5) { weekdays.push({ year: currentDate.getFullYear(), month: currentDate.getMonth() + 1, day: currentDate.getDate(), dayOfWeek: dayOfWeek }); }
             }
             return weekdays;
         }
-
-        function updateTime() {
+        function getProductionWeeksInMonth(year, month) { /* ... 이전과 동일 ... */ 
+            const productionWeeks = new Set();
+            const lastDateOfMonth = new Date(year, month + 1, 0).getDate();
+            for (let day = 1; day <= lastDateOfMonth; day++) {
+                const currentDate = new Date(year, month, day);
+                const dayOfWeek = currentDate.getDay();
+                if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+                    const firstDayOfMonth = new Date(year, month, 1).getDay();
+                    const weekNumber = Math.ceil((day + firstDayOfMonth) / 7);
+                    productionWeeks.add(weekNumber);
+                }
+            }
+            return productionWeeks;
+        }
+        function getCurrentWeekNumber(date) { /* ... 이전과 동일 ... */ 
+            const dayOfMonth = date.getDate();
+            const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+            return Math.ceil((dayOfMonth + firstDayOfMonth) / 7);
+        }
+        function updateTime() { /* ... 이전과 동일 ... */ 
             const timeDisplay = document.getElementById('current-time');
+            if (!timeDisplay) return;
             const now = new Date();
             const year = now.getFullYear();
             const month = String(now.getMonth() + 1).padStart(2, '0');
