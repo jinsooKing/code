@@ -14,18 +14,16 @@
 <body>
     <div class="page-container">
         <header class="main-header">
-            <div class="header-left"><a href="index.html"><picture><source srcset="logo.avif" type="image/avif"><img src="logo.png" alt="필리아텔레콤 로고" class="header-logo"></picture></a></div>
+            <div class="header-left"><a href="index.html"><picture><source srcset="logo.avif" type="image/avif"><img src="logo.png" alt="필리아텔레콤 로고" class="header-logo"></picture></a><div id="current-week-display" class="common-box font-15pt clickable-box"></div></div>
             <div class="header-center"><div class="common-box font-35pt">생산(SMD)</div></div>
             <div class="header-right"><div class="common-box font-15pt time-display" id="current-time"></div></div>
         </header>
-
         <main class="content-area">
             <div id="schedule-display-area"></div>
         </main>
-
         <footer class="main-footer">
             <div class="footer-left">
-                <a href="production_schedule_reg.html"><div class="common-box font-15pt clickable-box">생산일정등록</div></a>
+                <div class="common-box font-15pt clickable-box" id="reg-schedule-btn">생산일정등록</div>
             </div>
             <div class="footer-center">
                 <div class="common-box font-15pt clickable-box" id="back-btn">뒤로 가기</div>
@@ -36,24 +34,192 @@
         </footer>
     </div>
     
+    <div class="dropup-overlay" id="week-selector-dropup">
+        <div class="dropup-content">
+            <div class="grid-container" id="week-selector-grid"></div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="schedule-modal">
+        <div class="modal-window">
+            <button class="close-btn" id="close-modal-btn">&times;</button>
+            <h2 class="modal-title" id="modal-title"></h2>
+            <div class="modal-content">
+                <section class="line-schedule-section"><div class="line-header"><h3 class="line-title">A라인</h3><div class="action-buttons"><button class="plus-btn" data-line="A">+</button><button class="minus-btn" data-line="A">-</button></div></div><div class="table-container"><table class="editable-table registration-table"><colgroup><col style="width: 10%;"><col style="width: 20%;"><col style="width: 50%;"><col style="width: 8%;"><col style="width: 12%;"></colgroup><thead><tr><th>생산라인</th><th>업체</th><th>모델명</th><th>LOT</th><th>생산예정일</th></tr></thead><tbody id="schedule-table-body-A"></tbody></table></div></section>
+                <section class="line-schedule-section"><div class="line-header"><h3 class="line-title">B라인</h3><div class="action-buttons"><button class="plus-btn" data-line="B">+</button><button class="minus-btn" data-line="B">-</button></div></div><div class="table-container"><table class="editable-table registration-table"><colgroup><col style="width: 10%;"><col style="width: 20%;"><col style="width: 50%;"><col style="width: 8%;"><col style="width: 12%;"></colgroup><thead><tr><th>생산라인</th><th>업체</th><th>모델명</th><th>LOT</th><th>생산예정일</th></tr></thead><tbody id="schedule-table-body-B"></tbody></table></div></section>
+                <section class="line-schedule-section"><div class="line-header"><h3 class="line-title">C라인</h3><div class="action-buttons"><button class="plus-btn" data-line="C">+</button><button class="minus-btn" data-line="C">-</button></div></div><div class="table-container"><table class="editable-table registration-table"><colgroup><col style="width: 10%;"><col style="width: 20%;"><col style="width: 50%;"><col style="width: 8%;"><col style="width: 12%;"></colgroup><thead><tr><th>생산라인</th><th>업체</th><th>모델명</th><th>LOT</th><th>생산예정일</th></tr></thead><tbody id="schedule-table-body-C"></tbody></table></div></section>
+            </div>
+            <div class="modal-footer">
+                <div class="common-box font-15pt clickable-box reset-btn" id="reset-btn">초기화</div>
+                <div class="common-box font-15pt clickable-box" id="save-all-btn">저장</div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const displayArea = document.getElementById('schedule-display-area');
         const contentArea = document.querySelector('.content-area');
         const prevDataBtn = document.getElementById('prev-data-btn');
         const backBtn = document.getElementById('back-btn');
-        
+        const weekDisplay = document.getElementById('current-week-display');
+        const regScheduleBtn = document.getElementById('reg-schedule-btn');
+        const weekSelectorDropup = document.getElementById('week-selector-dropup');
+        const weekSelectorGrid = document.getElementById('week-selector-grid');
+        const modalOverlay = document.getElementById('schedule-modal');
+        const modalWindow = modalOverlay.querySelector('.modal-window');
+        const modalTitle = document.getElementById('modal-title');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const saveAllBtn = document.getElementById('save-all-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const lineControls = {
+            'A': { tableBody: document.getElementById('schedule-table-body-A'), addBtn: document.querySelector('.plus-btn[data-line="A"]'), removeBtn: document.querySelector('.minus-btn[data-line="A"]') },
+            'B': { tableBody: document.getElementById('schedule-table-body-B'), addBtn: document.querySelector('.plus-btn[data-line="B"]'), removeBtn: document.querySelector('.minus-btn[data-line="B"]') },
+            'C': { tableBody: document.getElementById('schedule-table-body-C'), addBtn: document.querySelector('.plus-btn[data-line="C"]'), removeBtn: document.querySelector('.minus-btn[data-line="C"]') }
+        };
         let currentView = { mode: 'current_week', data: {} };
         let viewHistory = [];
+        let currentSelectedWeekInfo = {};
 
-        // --- 메인 이벤트 리스너 ---
-        document.addEventListener('DOMContentLoaded', renderContent);
+        document.addEventListener('DOMContentLoaded', displayCurrentWeekSchedule);
         prevDataBtn.addEventListener('click', cycleViewMode);
         backBtn.addEventListener('click', goBackView);
-        displayArea.addEventListener('click', handlePeriodButtonClick);
+        regScheduleBtn.addEventListener('click', openWeekSelectorDropup);
+        weekSelectorDropup.addEventListener('click', handleWeekSelection);
         displayArea.addEventListener('change', handleTableInputChange);
+        saveAllBtn.addEventListener('click', saveSchedules);
+        resetBtn.addEventListener('click', resetSchedules);
+        closeModalBtn.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', closeModal);
+        modalWindow.addEventListener('click', (e) => e.stopPropagation());
+        for (const line in lineControls) {
+            const control = lineControls[line];
+            const currentLine = line;
+            control.addBtn.addEventListener('click', () => addNewScheduleRow(control.tableBody, currentLine));
+            control.removeBtn.addEventListener('click', () => removeLastScheduleRow(control.tableBody));
+        }
 
+        function saveSchedules() {
+            const allSchedules = [];
+            for (const line in lineControls) {
+                const tableBody = lineControls[line].tableBody;
+                const rows = tableBody.querySelectorAll('tr');
+                rows.forEach(row => {
+                    const inputs = row.querySelectorAll('input');
+                    const selects = row.querySelectorAll('select');
+                    const company = inputs[0].value;
+                    const model = inputs[1].value;
+                    const lot = inputs[2].value;
+                    if (company || model || lot) {
+                        allSchedules.push({ line: row.querySelector('.line-cell').textContent, company, model, lot, startDate: selects[0].value, endDate: selects[1].value });
+                    }
+                });
+            }
+            const storageKey = `week-${currentSelectedWeekInfo.year}-${currentSelectedWeekInfo.month}-${currentSelectedWeekInfo.weekNum}`;
+            sessionStorage.setItem(storageKey, JSON.stringify(allSchedules));
+            closeModal();
+            displayCurrentWeekSchedule();
+        }
+
+        function resetSchedules() {
+            if (confirm('정말로 해당 주차의 모든 일정을 초기화하시겠습니까?\n임시 저장된 내용이 삭제됩니다.')) {
+                const storageKey = `week-${currentSelectedWeekInfo.year}-${currentSelectedWeekInfo.month}-${currentSelectedWeekInfo.weekNum}`;
+                sessionStorage.removeItem(storageKey);
+                for (const line in lineControls) {
+                    const control = lineControls[line];
+                    control.tableBody.innerHTML = '';
+                    for (let i = 0; i < 5; i++) {
+                        addNewScheduleRow(control.tableBody, line);
+                    }
+                }
+                alert('일정이 초기화되었습니다.');
+            }
+        }
+
+        function openWeekSelectorDropup() {
+            const today = new Date();
+            const currentYear = today.getFullYear();
+            const currentMonth = today.getMonth();
+            const productionWeeksSet = getProductionWeeksInMonth(currentYear, currentMonth);
+            const weekNumbers = Array.from(productionWeeksSet).sort((a,b)=>a-b);
+            weekSelectorGrid.innerHTML = '';
+            weekNumbers.forEach(weekNum => {
+                const weekBox = document.createElement('div');
+                weekBox.className = 'week-box';
+                weekBox.textContent = `${currentMonth + 1}월 ${weekNum}주차`;
+                weekBox.dataset.year = currentYear;
+                weekBox.dataset.month = currentMonth + 1;
+                weekBox.dataset.week = weekNum;
+                weekSelectorGrid.appendChild(weekBox);
+            });
+            weekSelectorDropup.classList.add('visible');
+        }
+
+        function closeWeekSelectorDropup() {
+            weekSelectorDropup.classList.remove('visible');
+        }
+
+        function handleWeekSelection(event) {
+            const target = event.target;
+            if (target.classList.contains('week-box')) {
+                const { year, month, week } = target.dataset;
+                const weekInfo = { year: parseInt(year), month: parseInt(month), weekNum: parseInt(week) };
+                closeWeekSelectorDropup();
+                openModal(weekInfo);
+            } else if (target.id === 'week-selector-dropup') {
+                closeWeekSelectorDropup();
+            }
+        }
+        
+        function openModal(weekInfo) {
+            currentSelectedWeekInfo = weekInfo;
+            modalTitle.textContent = `${weekInfo.month}월${weekInfo.weekNum}주차 일정 등록`;
+            const storageKey = `week-${weekInfo.year}-${weekInfo.month}-${weekInfo.weekNum}`;
+            const savedData = JSON.parse(sessionStorage.getItem(storageKey)) || [];
+            for (const line in lineControls) {
+                lineControls[line].tableBody.innerHTML = '';
+            }
+            if (savedData.length > 0) {
+                savedData.forEach(data => {
+                    const tableBody = lineControls[data.line].tableBody;
+                    const newRow = addNewScheduleRow(tableBody, data.line);
+                    const inputs = newRow.querySelectorAll('input');
+                    const selects = newRow.querySelectorAll('select');
+                    inputs[0].value = data.company;
+                    inputs[1].value = data.model;
+                    inputs[2].value = data.lot;
+                    selects[0].value = data.startDate;
+                    selects[1].value = data.endDate;
+                });
+            } else {
+                for (const line in lineControls) {
+                    for (let i = 0; i < 5; i++) {
+                        addNewScheduleRow(lineControls[line].tableBody, line);
+                    }
+                }
+            }
+            modalOverlay.classList.add('visible');
+        }
+
+        function closeModal() { modalOverlay.classList.remove('visible'); }
+
+        function removeLastScheduleRow(targetTableBody) {
+            const rowCount = targetTableBody.rows.length;
+            if (rowCount > 0) {
+                targetTableBody.deleteRow(rowCount - 1);
+            }
+        }
+
+        function addNewScheduleRow(targetTableBody, line) {
+            const newRow = targetTableBody.insertRow();
+            const lineCell = `<td class="line-cell">${line}</td>`;
+            const textInputCell = `<td><input type="text"></td>`;
+            const dateCell = `<td><div class="date-select-group"><select class="start-date-select"></select><span>~</span><select class="end-date-select"></select></div></td>`;
+            newRow.innerHTML = lineCell + textInputCell + textInputCell + textInputCell + dateCell;
+            populateDateSelectors(currentSelectedWeekInfo, newRow);
+            return newRow;
+        }
+        
         function renderContent() {
-            const { mode } = currentView;
+            const { mode, data } = currentView;
             if (mode === 'current_week' || mode === 'schedule_view') {
                 contentArea.classList.add('align-top');
                 displayArea.style.marginTop = '30px';
@@ -61,21 +227,21 @@
                 contentArea.classList.remove('align-top');
                 displayArea.style.marginTop = '0';
             }
-
             switch (mode) {
                 case 'past_weeks': displayPastWeeks(); break;
-                case 'past_months': displayPastMonths(currentView.data.year); break;
+                case 'past_months': displayPastMonths(data.year); break;
                 case 'past_years': displayPastYears(); break;
-                case 'weeks_of_month': displayWeeksForMonth(currentView.data.year, currentView.data.month); break;
-                case 'schedule_view': displayScheduleForWeek(currentView.data.year, currentView.data.month, currentView.data.weekNum); break;
+                case 'weeks_of_month': displayWeeksForMonth(data.year, data.month); break;
+                case 'schedule_view': displayScheduleForWeek(data.year, data.month, data.weekNum); break;
                 case 'current_week':
                 default: displayCurrentWeekSchedule(); break;
             }
         }
-        
-        // --- 화면 전환 및 히스토리 관리 ---
+
         function navigateToView(newMode, data = {}) {
-            viewHistory.push(currentView);
+            if (currentView.mode !== newMode || JSON.stringify(currentView.data) !== JSON.stringify(data)) {
+                 viewHistory.push(currentView);
+            }
             currentView = { mode: newMode, data: data };
             renderContent();
         }
@@ -85,48 +251,41 @@
                 currentView = viewHistory.pop();
                 renderContent();
             } else {
-                history.back();
+                window.location.href = 'index.html'; 
             }
         }
-        
         function cycleViewMode() {
             const currentMode = currentView.mode;
             if (currentMode === 'current_week' || currentMode === 'schedule_view') navigateToView('past_weeks');
             else if (currentMode === 'past_weeks') navigateToView('past_months', { year: new Date().getFullYear() });
             else if (currentMode === 'past_months') navigateToView('past_years');
         }
-
         function handlePeriodButtonClick(event) {
             const target = event.target;
-            if (!target.classList.contains('period-btn')) return;
-            const { view, year, month, week } = target.dataset;
-            navigateToView(view, { year: parseInt(year), month: parseInt(month), week: parseInt(week) });
+            if (target.classList.contains('period-btn')) {
+                const { view, year, month, week } = target.dataset;
+                navigateToView(view, { year: parseInt(year), month: parseInt(month), week: parseInt(week) });
+            }
         }
-
-        // --- 데이터 저장/수정 관리 ---
         function handleTableInputChange(event) {
             const target = event.target;
             const row = target.closest('tr');
             if (!row) return;
-
             const rowIndex = row.dataset.rowIndex;
             const inputType = target.dataset.inputType;
             const { year, month, weekNum } = currentView.data;
             const currentWeekStorageKey = `week-${year}-${month}-${weekNum}`;
             const progressStorageKey = `progress-${currentWeekStorageKey}`;
-
             if (inputType === 'progress') {
                 saveProductionProgress(rowIndex, progressStorageKey);
             } else if (inputType === 'original') {
                 updateOriginalSchedule(rowIndex, currentWeekStorageKey);
             }
         }
-        
         function saveProductionProgress(rowIndex, storageKey) {
             const progressData = JSON.parse(sessionStorage.getItem(storageKey)) || {};
             const row = document.querySelector(`tr[data-row-index="${rowIndex}"]`);
             if (!row) return;
-            
             const inputs = row.querySelectorAll('[data-input-type="progress"]');
             progressData[rowIndex] = {
                 manager: inputs[0].value,
@@ -137,46 +296,42 @@
             };
             sessionStorage.setItem(storageKey, JSON.stringify(progressData));
         }
-
         function updateOriginalSchedule(rowIndex, storageKey) {
             const originalData = JSON.parse(sessionStorage.getItem(storageKey)) || [];
             if (!originalData[rowIndex]) return;
-
             const row = document.querySelector(`tr[data-row-index="${rowIndex}"]`);
             if (!row) return;
-            
             const inputs = row.querySelectorAll('[data-input-type="original"]');
             originalData[rowIndex].company = inputs[0].value;
             originalData[rowIndex].model = inputs[1].value;
             originalData[rowIndex].lot = inputs[2].value;
-
             sessionStorage.setItem(storageKey, JSON.stringify(originalData));
         }
-
-        // --- 각 뷰를 표시하는 함수들 ---
         function displayCurrentWeekSchedule() {
             const today = new Date();
-            currentView = { 
-                mode: 'current_week', 
-                data: { year: today.getFullYear(), month: today.getMonth() + 1, weekNum: getCurrentWeekNumber(today) }
-            };
-            displayScheduleForWeek(currentView.data.year, currentView.data.month, currentView.data.weekNum);
+            const year = today.getFullYear();
+            const month = today.getMonth() + 1;
+            const weekNum = getCurrentWeekNumber(today);
+            currentView = { mode: 'current_week', data: { year, month, weekNum } };
+            weekDisplay.textContent = `${year}년 ${month}월 ${weekNum}주차`;
+            displayScheduleForWeek(year, month, weekNum);
         }
-        
         function displayScheduleForWeek(year, month, weekNum) {
-            currentView.data = { year, month, weekNum }; // 현재 뷰 정보 업데이트
+            currentView = { mode: 'schedule_view', data: { year, month, weekNum } };
+            contentArea.classList.add('align-top');
+            displayArea.style.marginTop = '30px';
             const storageKey = `week-${year}-${month}-${weekNum}`;
             const progressKey = `progress-${storageKey}`;
             const savedData = JSON.parse(sessionStorage.getItem(storageKey)) || [];
             const progressData = JSON.parse(sessionStorage.getItem(progressKey)) || {};
-            
-            displayArea.innerHTML = createScheduleTableHTML(savedData, progressData);
-            
-            const weekInfo = { year, month, weekNum };
-            populateDateSelectorsForProductionPage(weekInfo, progressData);
+            const isReadOnly = (currentView.mode === 'schedule_view' && !(year === new Date().getFullYear() && month === new Date().getMonth() + 1 && weekNum === getCurrentWeekNumber(new Date())));
+            displayArea.innerHTML = createScheduleTableHTML(savedData, progressData, isReadOnly);
+            if (savedData.length > 0 && !isReadOnly) {
+                const weekInfo = { year, month, weekNum };
+                populateDateSelectorsForProductionPage(weekInfo, progressData);
+            }
         }
-
-        function displayPastWeeks() { /* ... 이전과 동일 ... */ 
+        function displayPastWeeks() {
             const today = new Date();
             const year = today.getFullYear();
             const month = today.getMonth() + 1;
@@ -186,9 +341,9 @@
                 contentHTML += `<div class="period-btn" data-view="schedule_view" data-year="${year}" data-month="${month}" data-week="${i}">${month}월 ${i}주차</div>`;
             }
             contentHTML += `</div>`;
-            displayArea.innerHTML = contentHTML || `<p class="no-data-message">조회할 주차가 없습니다.</p>`;
+            displayArea.innerHTML = contentHTML;
         }
-        function displayPastMonths(year) { /* ... 이전과 동일 ... */ 
+        function displayPastMonths(year) {
             const today = new Date();
             const currentMonth = (today.getFullYear() === year) ? today.getMonth() : 11;
             let contentHTML = `<div class="period-selector-grid">`;
@@ -196,9 +351,9 @@
                 contentHTML += `<div class="period-btn" data-view="weeks_of_month" data-year="${year}" data-month="${i + 1}">${i + 1}월</div>`;
             }
             contentHTML += `</div>`;
-            displayArea.innerHTML = contentHTML || `<p class="no-data-message">조회할 이전 월이 없습니다.</p>`;
+            displayArea.innerHTML = contentHTML;
         }
-        function displayPastYears() { /* ... 이전과 동일 ... */ 
+        function displayPastYears() {
             const currentYear = new Date().getFullYear();
             let contentHTML = `<div class="period-selector-grid">`;
             for (let i = 0; i < 5; i++) {
@@ -208,7 +363,7 @@
             contentHTML += `</div>`;
             displayArea.innerHTML = contentHTML;
         }
-        function displayWeeksForMonth(year, month) { /* ... 이전과 동일 ... */ 
+        function displayWeeksForMonth(year, month) {
             const productionWeeksSet = getProductionWeeksInMonth(year, month - 1);
             const weekNumbers = Array.from(productionWeeksSet).sort((a,b) => a - b);
             let contentHTML = `<div class="period-selector-grid">`;
@@ -218,11 +373,9 @@
             contentHTML += `</div>`;
             displayArea.innerHTML = contentHTML;
         }
-        
-        // --- 헬퍼 함수들 ---
-        function createScheduleTableHTML(schedules, progress) {
+        function createScheduleTableHTML(schedules, progress, isReadOnly = false) {
             const schedulesByLine = { A: [], B: [], C: [] };
-            if (schedules.length > 0) {
+            if (schedules && schedules.length > 0) {
                 schedules.forEach((schedule, index) => {
                     schedule.originalIndex = index;
                     if (schedulesByLine[schedule.line]) { schedulesByLine[schedule.line].push(schedule); }
@@ -235,25 +388,24 @@
                     tableHTML += `<div class="table-container"><table class="editable-table production-view-table"><thead><tr><th>생산라인</th><th>담당자</th><th>업체</th><th>모델명</th><th>T/B</th><th>실생산</th><th>LOT</th><th>생산시작일</th><th>생산종료일</th><th>생산예정일</th></tr></thead><tbody>`;
                     tableHTML += schedulesByLine[line].map(s => {
                         const prog = progress[s.originalIndex] || {};
-                        return `<tr data-row-index="${s.originalIndex}">
-                                    <td class="line-cell">${s.line}</td>
-                                    <td><input type="text" class="form-input" data-input-type="progress" value="${prog.manager || ''}"></td>
-                                    <td class="data-cell"><input type="text" class="form-input" data-input-type="original" value="${s.company}"></td>
-                                    <td class="data-cell"><input type="text" class="form-input" data-input-type="original" value="${s.model}"></td>
-                                    <td>
-                                        <select class="form-select" data-input-type="progress">
-                                            <option ${prog.tb === 'Top' ? 'selected' : ''}>Top</option>
-                                            <option ${prog.tb === 'Bottom' ? 'selected' : ''}>Bottom</option>
-                                            <option ${prog.tb === 'Top Only' ? 'selected' : ''}>Top Only</option>
-                                            <option ${prog.tb === 'Bottom Only' ? 'selected' : ''}>Bottom Only</option>
-                                        </select>
-                                    </td>
-                                    <td><input type="text" class="form-input" data-input-type="progress" value="${prog.actualProd || ''}"></td>
-                                    <td class="data-cell"><input type="text" class="form-input" data-input-type="original" value="${s.lot}"></td>
-                                    <td><select class="form-select prod-start-date" data-input-type="progress"></select></td>
-                                    <td><select class="form-select prod-end-date" data-input-type="progress"></select></td>
-                                    <td>${s.startDate} ~ ${s.endDate}</td>
-                                </tr>`;
+                        if (isReadOnly) {
+                            return `<tr data-row-index="${s.originalIndex}">
+                                        <td class="line-cell">${s.line}</td> <td>${prog.manager || ''}</td> <td>${s.company}</td> <td>${s.model}</td> <td>${prog.tb || 'Top'}</td> <td>${prog.actualProd || ''}</td> <td>${s.lot}</td> <td>${prog.prodStart || '-'}</td> <td>${prog.prodEnd || '-'}</td> <td>${s.startDate} ~ ${s.endDate}</td>
+                                    </tr>`;
+                        } else {
+                            return `<tr data-row-index="${s.originalIndex}">
+                                        <td class="line-cell">${s.line}</td>
+                                        <td><input type="text" class="form-input" data-input-type="progress" value="${prog.manager || ''}"></td>
+                                        <td class="data-cell"><input type="text" class="form-input" data-input-type="original" value="${s.company}"></td>
+                                        <td class="data-cell"><input type="text" class="form-input" data-input-type="original" value="${s.model}"></td>
+                                        <td><select class="form-select" data-input-type="progress"><option ${prog.tb === 'Top' ? 'selected' : ''}>Top</option><option ${prog.tb === 'Bottom' ? 'selected' : ''}>Bottom</option><option ${prog.tb === 'Top Only' ? 'selected' : ''}>Top Only</option><option ${prog.tb === 'Bottom Only' ? 'selected' : ''}>Bottom Only</option></select></td>
+                                        <td><input type="text" class="form-input" data-input-type="progress" value="${prog.actualProd || ''}"></td>
+                                        <td class="data-cell"><input type="text" class="form-input" data-input-type="original" value="${s.lot}"></td>
+                                        <td><select class="form-select prod-start-date" data-input-type="progress"></select></td>
+                                        <td><select class="form-select prod-end-date" data-input-type="progress"></select></td>
+                                        <td>${s.startDate} ~ ${s.endDate}</td>
+                                    </tr>`;
+                        }
                     }).join('');
                     tableHTML += `</tbody></table></div>`;
                 } else { tableHTML += `<p class="no-line-data-message">${line}라인은 등록된 생산 일정이 없습니다.</p>`; }
@@ -261,40 +413,51 @@
             }
             return tableHTML;
         }
+
+        // [복원] 누락되었던 헬퍼 함수들
+        function populateDateSelectors(weekInfo, row) {
+            if (!row || !weekInfo.year) return;
+            const startDateSelect = row.querySelector('.start-date-select');
+            const endDateSelect = row.querySelector('.end-date-select');
+            startDateSelect.innerHTML = ''; endDateSelect.innerHTML = '';
+            const weekdays = getWeekdaysForWeek(weekInfo.year, weekInfo.month - 1, weekInfo.weekNum);
+            const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+            weekdays.forEach(item => {
+                const optionText = `${item.month}/${item.day}(${dayNames[item.dayOfWeek]})`;
+                const startOption = document.createElement('option');
+                startOption.value = optionText;
+                startOption.textContent = optionText;
+                startDateSelect.appendChild(startOption);
+                const endOption = document.createElement('option');
+                endOption.value = optionText;
+                endOption.textContent = optionText;
+                endDateSelect.appendChild(endOption);
+            });
+        }
         function populateDateSelectorsForProductionPage(weekInfo, progressData) {
             const weekdays = getWeekdaysForWeek(weekInfo.year, weekInfo.month - 1, weekInfo.weekNum);
             const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
             const allStartDateSelects = document.querySelectorAll('.prod-start-date');
             const allEndDateSelects = document.querySelectorAll('.prod-end-date');
             const createOption = (value, text) => { const option = document.createElement('option'); option.value = value; option.textContent = text; return option; };
-
             allStartDateSelects.forEach(select => {
-                const rowIndex = select.closest('tr').dataset.rowIndex;
+                const row = select.closest('tr');
+                if (!row) return;
+                const rowIndex = row.dataset.rowIndex;
                 const savedStart = progressData[rowIndex] ? progressData[rowIndex].prodStart : '-';
-                select.innerHTML = '';
-                select.appendChild(createOption('-', '-'));
-                weekdays.forEach(item => {
-                    const optionText = `${item.month}/${item.day}(${dayNames[item.dayOfWeek]})`;
-                    const option = createOption(optionText, optionText);
-                    if(optionText === savedStart) option.selected = true;
-                    select.appendChild(option);
-                });
+                select.innerHTML = ''; select.appendChild(createOption('-', '-'));
+                weekdays.forEach(item => { const optionText = `${item.month}/${item.day}(${dayNames[item.dayOfWeek]})`; const option = createOption(optionText, optionText); if(optionText === savedStart) option.selected = true; select.appendChild(option); });
             });
-
             allEndDateSelects.forEach(select => {
-                const rowIndex = select.closest('tr').dataset.rowIndex;
+                const row = select.closest('tr');
+                if (!row) return;
+                const rowIndex = row.dataset.rowIndex;
                 const savedEnd = progressData[rowIndex] ? progressData[rowIndex].prodEnd : '-';
-                select.innerHTML = '';
-                select.appendChild(createOption('-', '-'));
-                weekdays.forEach(item => {
-                    const optionText = `${item.month}/${item.day}(${dayNames[item.dayOfWeek]})`;
-                    const option = createOption(optionText, optionText);
-                    if(optionText === savedEnd) option.selected = true;
-                    select.appendChild(option);
-                });
+                select.innerHTML = ''; select.appendChild(createOption('-', '-'));
+                weekdays.forEach(item => { const optionText = `${item.month}/${item.day}(${dayNames[item.dayOfWeek]})`; const option = createOption(optionText, optionText); if(optionText === savedEnd) option.selected = true; select.appendChild(option); });
             });
         }
-        function getWeekdaysForWeek(year, month, weekNum) { /* ... 이전과 동일 ... */ 
+        function getWeekdaysForWeek(year, month, weekNum) {
             const weekdays = [];
             const firstDateOfMonth = new Date(year, month, 1);
             const firstDayOfWeek = firstDateOfMonth.getDay();
@@ -309,7 +472,7 @@
             }
             return weekdays;
         }
-        function getProductionWeeksInMonth(year, month) { /* ... 이전과 동일 ... */ 
+        function getProductionWeeksInMonth(year, month) {
             const productionWeeks = new Set();
             const lastDateOfMonth = new Date(year, month + 1, 0).getDate();
             for (let day = 1; day <= lastDateOfMonth; day++) {
@@ -323,12 +486,12 @@
             }
             return productionWeeks;
         }
-        function getCurrentWeekNumber(date) { /* ... 이전과 동일 ... */ 
+        function getCurrentWeekNumber(date) {
             const dayOfMonth = date.getDate();
             const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
             return Math.ceil((dayOfMonth + firstDayOfMonth) / 7);
         }
-        function updateTime() { /* ... 이전과 동일 ... */ 
+        function updateTime() {
             const timeDisplay = document.getElementById('current-time');
             if (!timeDisplay) return;
             const now = new Date();
@@ -341,7 +504,6 @@
             timeDisplay.textContent = formattedTime;
         }
         setInterval(updateTime, 1000);
-        updateTime();
     </script>
 </body>
 </html>

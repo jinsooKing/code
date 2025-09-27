@@ -11,13 +11,19 @@
 .header-left, .header-center, .header-right {
     flex: 1; display: flex;
 }
-.header-left { justify-content: flex-start; }
+.header-left { 
+    justify-content: flex-start;
+    align-items: center; /* [수정] 로고와 주차 UI의 세로 정렬을 위해 추가 */
+    gap: 20px; /* [수정] 로고와 주차 UI 사이의 간격 */
+}
 .header-center { justify-content: center; }
 .header-right { justify-content: flex-end; }
+
 .header-logo {
-    height: 80px; 
+    height: 40px; 
     width: auto;
 }
+
 .time-display {
     margin-right: 50px;
 }

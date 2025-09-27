@@ -1,91 +1,52 @@
 /* --- 기본 폰트 설정 및 전체 레이아웃 --- */
 body, html {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    background-color: #121212;
+    margin: 0; padding: 0; height: 100%; background-color: #121212;
 }
 .page-container {
-    display: flex;
-    flex-direction: column;
-    min-height: 100%;
+    display: flex; flex-direction: column; min-height: 100%;
 }
 a {
-    color: inherit;
-    text-decoration: none;
+    color: inherit; text-decoration: none;
 }
 /* --- 공용 컨텐츠 영역 스타일 --- */
 .content-area {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 50px;
-    background-color: #2C2C2E;
+    flex: 1; display: flex; justify-content: center; align-items: center; padding: 35px; background-color: #2C2C2E;
 }
 /* --- 공용 컴포넌트 스타일 --- */
 .common-box {
-    width: fit-content;
-    padding: 10px 25px;
-    border-radius: 15px;
-    background-color: #000000;
-    color: #FFFFFF;
-    font-weight: bold;
-    white-space: nowrap;
-    border: 1px solid #555;
-    border-bottom: 5px solid #333;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    width: fit-content; padding: 7px 18px; border-radius: 10px; background-color: #000000; color: #FFFFFF; font-weight: bold; white-space: nowrap; border: 1px solid #555; border-bottom: 3px solid #333; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 /* 폰트 크기 유틸리티 클래스 */
-.font-15pt { font-size: 15pt; }
-.font-35pt { font-size: 35pt; }
-.font-45pt { font-size: 45pt; }
+.font-15pt { font-size: 1rem; }
+.font-35pt { font-size: 2.3rem; }
+.font-45pt { font-size: 3rem; }
 /* 클릭 효과 유틸리티 클래스 */
 .clickable-box {
-    cursor: pointer;
-    transition: all 0.1s ease-out;
+    cursor: pointer; transition: all 0.1s ease-out;
 }
 .clickable-box:active {
-    transform: translateY(2px);
-    border-bottom-width: 3px;
-    box-shadow: 0 2px 3px rgba(0,0,0,0.15);
+    transform: translateY(1px); border-bottom-width: 2px;
 }
 /* --- 그리드 레이아웃 스타일 --- */
 .grid-container {
-    display: grid;
-    gap: 30px;
+    display: grid; gap: 20px;
 }
 .grid-layout-2-col { grid-template-columns: repeat(2, 1fr); }
 .grid-layout-3-col { grid-template-columns: repeat(3, 1fr); }
 /* 생산 페이지의 주차별 UI를 위한 작은 박스 스타일 */
 .week-box {
-    font-family: 'BMJUA', sans-serif;
-    font-size: 23pt;
-    font-weight: bold;
-    background-color: #000000;
-    color: #FFFFFF;
-    padding: 20px 40px;
-    border-radius: 15px;
-    text-align: center;
-    border: 1px solid #555;
-    border-bottom: 5px solid #444;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-    cursor: pointer;
-    transition: all 0.1s ease-out;
+    font-family: 'BMJUA', sans-serif; font-size: 1.5rem; font-weight: bold; background-color: #000000; color: #FFFFFF; padding: 14px 28px; border-radius: 10px; text-align: center; border: 1px solid #555; border-bottom: 4px solid #444; box-shadow: 0 3px 5px rgba(0,0,0,0.2); cursor: pointer; transition: all 0.1s ease-out;
 }
 .week-box:active {
-    transform: translateY(3px);
-    border-bottom-width: 2px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    transform: translateY(2px); border-bottom-width: 2px;
 }
 /* 현재 주차를 강조하는 네온 효과 스타일 */
 .week-box.current-week {
-    border-color: #00BFFF;
-    box-shadow: 0 0 8px 2px rgba(0, 191, 255, 0.5), 
-                0 0 15px 4px rgba(0, 191, 255, 0.3);
+    border-color: #00BFFF; box-shadow: 0 0 6px 1px rgba(0, 191, 255, 0.5), 0 0 10px 3px rgba(0, 191, 255, 0.3);
 }
-/* 모달(팝업) 창 스타일 */
-.modal-overlay {
+
+/* [복원] 드롭업 메뉴 스타일 (크기 축소 이전 버전으로 복원) */
+.dropup-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -94,133 +55,76 @@ a {
     background-color: rgba(0, 0, 0, 0.7);
     display: none;
     justify-content: center;
-    align-items: center;
-    z-index: 1000;
+    align-items: flex-end;
+    z-index: 999;
+}
+.dropup-content {
+    background-color: #2C2C2E;
+    width: 100%;
+    max-width: 1200px;
+    padding: 20px;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.3);
+    animation: slideUp 0.3s ease-out;
+}
+@keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+.dropup-overlay.visible {
+    display: flex;
+}
+
+/* 모달(팝업) 창 스타일 */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); display: none; justify-content: center; align-items: center; z-index: 1000;
 }
 .modal-window {
-    background-color: #2C2C2E;
-    padding: 25px;
-    border-radius: 15px;
-    border: 1px solid #555;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-    width: 95vw;
-    max-width: 1800px;
-    height: 90vh;
-    position: relative;
-    font-family: 'BMDOHYEON', sans-serif;
-    font-weight: bold;
-    display: flex;
-    flex-direction: column;
+    background-color: #2C2C2E; padding: 20px; border-radius: 10px; border: 1px solid #555; box-shadow: 0 8px 20px rgba(0,0,0,0.5); width: 95vw; max-width: 1400px; height: 90vh; position: relative; font-family: 'BMDOHYEON', sans-serif; font-weight: bold; display: flex; flex-direction: column;
 }
 .modal-title {
-    color: #FFFFFF;
-    font-size: 25pt;
-    margin-top: 0;
-    padding-bottom: 15px;
-    font-family: inherit;
-    font-weight: inherit;
-    flex-shrink: 0;
+    color: #FFFFFF; font-size: 1.6rem; margin: 0 0 10px 0; padding-bottom: 10px; font-family: inherit; font-weight: inherit; flex-shrink: 0;
 }
 .close-btn {
-    position: absolute;
-    top: 15px;
-    right: 25px;
-    font-size: 35px;
-    color: #888;
-    cursor: pointer;
-    border: none;
-    background: none;
-    z-index: 10;
+    position: absolute; top: 10px; right: 20px; font-size: 2.3rem; color: #888; cursor: pointer; border: none; background: none; z-index: 10;
 }
-.close-btn:hover {
-    color: #FFFFFF;
-}
-.modal-overlay.visible {
-    display: flex;
-}
+.close-btn:hover { color: #FFFFFF; }
+.modal-overlay.visible { display: flex; }
 .modal-content {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    min-height: 0;
+    flex-grow: 1; display: flex; flex-direction: column; gap: 10px; min-height: 0;
 }
 .line-schedule-section {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    border-top: 1px solid #555;
-    padding-top: 10px;
-    min-height: 0;
+    flex: 1; display: flex; flex-direction: column; border-top: 1px solid #555; padding-top: 5px; min-height: 0; overflow: hidden;
 }
 .line-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;
 }
 .line-title {
-    font-size: 18pt;
-    color: #FFFFFF;
+    font-size: 1.2rem; color: #FFFFFF; margin: 0;
 }
 .action-buttons {
-    display: flex;
-    gap: 10px;
+    display: flex; gap: 8px;
 }
 .plus-btn, .minus-btn {
-    width: auto;
-    height: auto;
-    padding: 5px 12px;
-    font-size: 16pt;
-    font-weight: bold;
-    color: #FFFFFF;
-    background-color: #000000;
-    border: 1px solid #555;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.1s ease-out;
+    width: auto; height: auto; padding: 4px 10px; font-size: 1.1rem; font-weight: bold; color: #FFFFFF; background-color: #000000; border: 1px solid #555; border-radius: 6px; cursor: pointer; transition: all 0.1s ease-out;
 }
-.plus-btn:hover {
-    background-color: #007BFF;
-}
-.minus-btn:hover {
-    background-color: #dc3545;
-}
-.plus-btn:active, .minus-btn:active {
-    transform: translateY(1px);
-}
+.plus-btn:hover { background-color: #007BFF; }
+.minus-btn:hover { background-color: #dc3545; }
+.plus-btn:active, .minus-btn:active { transform: translateY(1px); }
 .table-container {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    border: 1px solid #555;
-    border-radius: 8px;
+    flex: 1; min-height: 0; overflow-y: auto; border: 1px solid #555; border-radius: 8px;
 }
 table.editable-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: inherit;
+    width: 100%; border-collapse: collapse; font-family: inherit; table-layout: fixed;
 }
-
 .editable-table th, .editable-table td {
-    padding: 8px;
-    text-align: center;
-    border-bottom: 1px solid #FFFFFF;
-    border-right: 1px solid #FFFFFF;
-    color: #FFFFFF;
-    font-size: 14pt;
-    font-weight: bold; /* 'inherit'에서 'bold'로 변경 */
+    padding: 6px; text-align: center; border-bottom: 1px solid #FFFFFF; border-right: 1px solid #FFFFFF; color: #FFFFFF; font-size: 0.9rem; font-weight: bold;
 }
 .editable-table thead th {
-    background-color: #3A3A3C;
-    position: sticky;
-    top: 0;
+    background-color: #3A3A3C; top: 0;
 }
-.editable-table th:last-child, .editable-table td:last-child {
-    border-right: none;
-}
-
-/* [복원] '생산 페이지'의 10열 테이블 너비 설정 */
+.editable-table th:last-child, .editable-table td:last-child { border-right: none; }
 .production-view-table thead th:nth-child(1) { width: 6%; }
 .production-view-table thead th:nth-child(2) { width: 8%; }
 .production-view-table thead th:nth-child(3) { width: 8%; }
@@ -231,72 +135,27 @@ table.editable-table {
 .production-view-table thead th:nth-child(8) { width: 8%; }
 .production-view-table thead th:nth-child(9) { width: 8%; }
 .production-view-table thead th:nth-child(10){ width: 23%; }
-
 .data-cell {
     padding: 0 !important;
 }
-.data-cell input {
-    /* background-color: #3A3A3C !important; */
-    /* [삭제] 일반 텍스트처럼 보이게 하던 normal 설정을 제거합니다. */
-    /* font-weight: normal !important; */
-}
-
-.editable-table tbody tr:nth-child(even) {
-    background-color: #3A3A3C;
-}
-
-.editable-table tbody tr:hover {
-    background-color: #555;
-}
+.data-cell input {}
+.editable-table tbody tr:nth-child(even) { background-color: #3A3A3C; }
+.editable-table tbody tr:hover { background-color: #555; }
 .editable-table input, .editable-table select {
-    width: 100%;
-    height: 100%;
-    padding: 10px;
-    background: transparent;
-    border: none;
-    color: #FFFFFF;
-    font-family: 'BMDOHYEON', sans-serif;
-    font-weight: bold;
-    font-size: 14pt;
-    box-sizing: border-box;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
+    width: 100%; height: 100%; padding: 8px; background: transparent; border: none; color: #FFFFFF; font-family: 'BMDOHYEON', sans-serif; font-weight: bold; font-size: 0.9rem; box-sizing: border-box; -webkit-appearance: none; -moz-appearance: none; appearance: none;
 }
-.editable-table input::placeholder {
-    color: #888;
-}
+.editable-table input::placeholder { color: #888; }
 .editable-table input:focus, .editable-table select:focus {
-    outline: none;
-    background-color: #000000;
+    outline: none; background-color: #000000;
 }
 .editable-table .date-select-group {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
+    display: flex; align-items: center; justify-content: center; gap: 5px;
 }
-
 .modal-footer {
-    display: flex;
-    justify-content: space-between; /* 왼쪽과 오른쪽으로 요소를 분리 */
-    align-items: center; /* 세로 중앙 정렬 */
-    padding-top: 15px;
-    border-top: 1px solid #555;
-    flex-shrink: 0;
+    display: flex; justify-content: space-between; align-items: center; padding-top: 15px; border-top: 1px solid #555; flex-shrink: 0;
 }
-
-/* [추가] 초기화 버튼 스타일 */
-.reset-btn {
-    background-color: #721c24; /* 어두운 빨간색 */
-}
-.reset-btn:hover {
-    background-color: #dc3545; /* 밝은 빨간색 */
-}
-
+.reset-btn { background-color: #721c24; }
+.reset-btn:hover { background-color: #dc3545; }
 .no-data-message {
-    font-family: 'BMDOHYEON', sans-serif;
-    font-size: 24pt;
-    color: #888;
-    font-weight: bold;
+    font-family: 'BMDOHYEON', sans-serif; font-size: 1.6rem; color: #888; font-weight: bold;
 }
