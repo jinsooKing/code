@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,43 +11,145 @@
     <link rel="stylesheet" href="production.css">
     <link href="https://hangeul.pstatic.net/hangeul_static/css/bmdohyeon.css" rel="stylesheet">
     <link href="https://hangeul.pstatic.net/hangeul_static/css/bmjua.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
 </head>
+
 <body>
     <div class="page-container">
         <header class="main-header">
-            <div class="header-left"><a href="index.html"><picture><source srcset="logo.avif" type="image/avif"><img src="logo.png" alt="필리아텔레콤 로고" class="header-logo"></picture></a><div id="current-week-display" class="common-box font-15pt clickable-box"></div></div>
-            <div class="header-center"><div class="common-box font-35pt">생산(SMD)</div></div>
-            <div class="header-right"><div class="common-box font-15pt time-display" id="current-time"></div></div>
+            <div class="header-left"><a href="index.html">
+                    <picture>
+                        <source srcset="logo.avif" type="image/avif"><img src="logo.png" alt="필리아텔레콤 로고"
+                            class="header-logo">
+                    </picture>
+                </a>
+                <div id="current-week-display" class="common-box font-15pt clickable-box"></div>
+            </div>
+            <div class="header-center">
+                <div class="common-box font-35pt">생산(SMD)</div>
+            </div>
+            <div class="header-right">
+                <div class="common-box font-15pt time-display" id="current-time"></div>
+            </div>
         </header>
+
         <main class="content-area">
             <div id="schedule-display-area"></div>
         </main>
+
         <footer class="main-footer">
             <div class="footer-left">
                 <div class="common-box font-15pt clickable-box" id="reg-schedule-btn">생산일정등록</div>
             </div>
             <div class="footer-center">
-                <div class="common-box font-15pt clickable-box" id="back-btn">뒤로 가기</div>
+                <div class="common-box font-15pt clickable-box" id="back-btn"><i class="fas fa-arrow-left"></i></div>
+                <div class="common-box font-15pt clickable-box" id="home-btn"><i class="fas fa-home"></i></div>
+                <div class="common-box font-15pt clickable-box" id="forward-btn"><i class="fas fa-arrow-right"></i>
+                </div>
             </div>
             <div class="footer-right">
                 <div class="common-box font-15pt clickable-box" id="prev-data-btn">이전데이터</div>
             </div>
         </footer>
     </div>
-    
+
     <div class="dropup-overlay" id="week-selector-dropup">
         <div class="dropup-content">
             <div class="grid-container" id="week-selector-grid"></div>
         </div>
     </div>
+
     <div class="modal-overlay" id="schedule-modal">
         <div class="modal-window">
             <button class="close-btn" id="close-modal-btn">&times;</button>
             <h2 class="modal-title" id="modal-title"></h2>
             <div class="modal-content">
-                <section class="line-schedule-section"><div class="line-header"><h3 class="line-title">A라인</h3><div class="action-buttons"><button class="plus-btn" data-line="A">+</button><button class="minus-btn" data-line="A">-</button></div></div><div class="table-container"><table class="editable-table registration-table"><colgroup><col style="width: 10%;"><col style="width: 20%;"><col style="width: 50%;"><col style="width: 8%;"><col style="width: 12%;"></colgroup><thead><tr><th>생산라인</th><th>업체</th><th>모델명</th><th>LOT</th><th>생산예정일</th></tr></thead><tbody id="schedule-table-body-A"></tbody></table></div></section>
-                <section class="line-schedule-section"><div class="line-header"><h3 class="line-title">B라인</h3><div class="action-buttons"><button class="plus-btn" data-line="B">+</button><button class="minus-btn" data-line="B">-</button></div></div><div class="table-container"><table class="editable-table registration-table"><colgroup><col style="width: 10%;"><col style="width: 20%;"><col style="width: 50%;"><col style="width: 8%;"><col style="width: 12%;"></colgroup><thead><tr><th>생산라인</th><th>업체</th><th>모델명</th><th>LOT</th><th>생산예정일</th></tr></thead><tbody id="schedule-table-body-B"></tbody></table></div></section>
-                <section class="line-schedule-section"><div class="line-header"><h3 class="line-title">C라인</h3><div class="action-buttons"><button class="plus-btn" data-line="C">+</button><button class="minus-btn" data-line="C">-</button></div></div><div class="table-container"><table class="editable-table registration-table"><colgroup><col style="width: 10%;"><col style="width: 20%;"><col style="width: 50%;"><col style="width: 8%;"><col style="width: 12%;"></colgroup><thead><tr><th>생산라인</th><th>업체</th><th>모델명</th><th>LOT</th><th>생산예정일</th></tr></thead><tbody id="schedule-table-body-C"></tbody></table></div></section>
+                <section class="line-schedule-section">
+                    <div class="line-header">
+                        <h3 class="line-title">A라인</h3>
+                        <div class="action-buttons"><button class="plus-btn" data-line="A">+</button><button
+                                class="minus-btn" data-line="A">-</button></div>
+                    </div>
+                    <div class="table-container">
+                        <table class="editable-table registration-table">
+                            <colgroup>
+                                <col style="width: 10%;">
+                                <col style="width: 20%;">
+                                <col style="width: 50%;">
+                                <col style="width: 8%;">
+                                <col style="width: 12%;">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>생산라인</th>
+                                    <th>업체</th>
+                                    <th>모델명</th>
+                                    <th>LOT</th>
+                                    <th>생산예정일</th>
+                                </tr>
+                            </thead>
+                            <tbody id="schedule-table-body-A"></tbody>
+                        </table>
+                    </div>
+                </section>
+                <section class="line-schedule-section">
+                    <div class="line-header">
+                        <h3 class="line-title">B라인</h3>
+                        <div class="action-buttons"><button class="plus-btn" data-line="B">+</button><button
+                                class="minus-btn" data-line="B">-</button></div>
+                    </div>
+                    <div class="table-container">
+                        <table class="editable-table registration-table">
+                            <colgroup>
+                                <col style="width: 10%;">
+                                <col style="width: 20%;">
+                                <col style="width: 50%;">
+                                <col style="width: 8%;">
+                                <col style="width: 12%;">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>생산라인</th>
+                                    <th>업체</th>
+                                    <th>모델명</th>
+                                    <th>LOT</th>
+                                    <th>생산예정일</th>
+                                </tr>
+                            </thead>
+                            <tbody id="schedule-table-body-B"></tbody>
+                        </table>
+                    </div>
+                </section>
+                <section class="line-schedule-section">
+                    <div class="line-header">
+                        <h3 class="line-title">C라인</h3>
+                        <div class="action-buttons"><button class="plus-btn" data-line="C">+</button><button
+                                class="minus-btn" data-line="C">-</button></div>
+                    </div>
+                    <div class="table-container">
+                        <table class="editable-table registration-table">
+                            <colgroup>
+                                <col style="width: 10%;">
+                                <col style="width: 20%;">
+                                <col style="width: 50%;">
+                                <col style="width: 8%;">
+                                <col style="width: 12%;">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>생산라인</th>
+                                    <th>업체</th>
+                                    <th>모델명</th>
+                                    <th>LOT</th>
+                                    <th>생산예정일</th>
+                                </tr>
+                            </thead>
+                            <tbody id="schedule-table-body-C"></tbody>
+                        </table>
+                    </div>
+                </section>
             </div>
             <div class="modal-footer">
                 <div class="common-box font-15pt clickable-box reset-btn" id="reset-btn">초기화</div>
@@ -55,11 +158,31 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="export-choice-modal">
+        <div class="modal-window small-modal">
+            <button class="close-btn" id="close-export-modal-btn">&times;</button>
+            <h3 class="modal-title">다운로드 형식 선택</h3>
+            <div class="modal-content choice-buttons">
+                <div id="export-plan-btn" class="common-box font-15pt clickable-box">
+                    <i class="fas fa-calendar-alt"></i> 생산계획서
+                </div>
+                <div id="export-report-btn" class="common-box font-15pt clickable-box">
+                    <i class="fas fa-file-pdf"></i> 생산보고서
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="paperlogy-font.js"></script>
+
     <script>
+        // --- 전역 요소 ---
         const displayArea = document.getElementById('schedule-display-area');
         const contentArea = document.querySelector('.content-area');
         const prevDataBtn = document.getElementById('prev-data-btn');
         const backBtn = document.getElementById('back-btn');
+        const homeBtn = document.getElementById('home-btn');
+        const forwardBtn = document.getElementById('forward-btn');
         const weekDisplay = document.getElementById('current-week-display');
         const regScheduleBtn = document.getElementById('reg-schedule-btn');
         const weekSelectorDropup = document.getElementById('week-selector-dropup');
@@ -70,33 +193,97 @@
         const closeModalBtn = document.getElementById('close-modal-btn');
         const saveAllBtn = document.getElementById('save-all-btn');
         const resetBtn = document.getElementById('reset-btn');
+        const downloadExcelBtn = document.getElementById('download-excel-btn');
+        const downloadPdfBtn = document.getElementById('download-pdf-btn');
+        const exportChoiceModal = document.getElementById('export-choice-modal');
+        const closeExportModalBtn = document.getElementById('close-export-modal-btn');
+        const exportExcelBtn = document.getElementById('export-excel-btn');
+        const exportPdfBtn = document.getElementById('export-pdf-btn');
         const lineControls = {
             'A': { tableBody: document.getElementById('schedule-table-body-A'), addBtn: document.querySelector('.plus-btn[data-line="A"]'), removeBtn: document.querySelector('.minus-btn[data-line="A"]') },
             'B': { tableBody: document.getElementById('schedule-table-body-B'), addBtn: document.querySelector('.plus-btn[data-line="B"]'), removeBtn: document.querySelector('.minus-btn[data-line="B"]') },
             'C': { tableBody: document.getElementById('schedule-table-body-C'), addBtn: document.querySelector('.plus-btn[data-line="C"]'), removeBtn: document.querySelector('.minus-btn[data-line="C"]') }
         };
+
         let currentView = { mode: 'current_week', data: {} };
         let viewHistory = [];
+        let forwardHistory = []; // ✨ 앞으로 가기 기록을 위한 배열 추가
         let currentSelectedWeekInfo = {};
 
-        document.addEventListener('DOMContentLoaded', displayCurrentWeekSchedule);
-        prevDataBtn.addEventListener('click', cycleViewMode);
-        backBtn.addEventListener('click', goBackView);
-        regScheduleBtn.addEventListener('click', openWeekSelectorDropup);
-        weekSelectorDropup.addEventListener('click', handleWeekSelection);
-        displayArea.addEventListener('change', handleTableInputChange);
-        saveAllBtn.addEventListener('click', saveSchedules);
-        resetBtn.addEventListener('click', resetSchedules);
-        closeModalBtn.addEventListener('click', closeModal);
-        modalOverlay.addEventListener('click', closeModal);
-        modalWindow.addEventListener('click', (e) => e.stopPropagation());
-        for (const line in lineControls) {
-            const control = lineControls[line];
-            const currentLine = line;
-            control.addBtn.addEventListener('click', () => addNewScheduleRow(control.tableBody, currentLine));
-            control.removeBtn.addEventListener('click', () => removeLastScheduleRow(control.tableBody));
-        }
+        // --- 메인 이벤트 리스너 ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // 페이지가 처음 로드될 때 현재 주차 일정을 표시합니다.
+            displayCurrentWeekSchedule();
 
+            // 모든 버튼과 요소에 대한 이벤트 리스너를 이 안에서 연결합니다.
+            prevDataBtn.addEventListener('click', cycleViewMode);
+            backBtn.addEventListener('click', goBackView);
+            homeBtn.addEventListener('click', () => window.location.href = 'index.html');
+            forwardBtn.addEventListener('click', goForwardView);
+            regScheduleBtn.addEventListener('click', openWeekSelectorDropup);
+            weekSelectorDropup.addEventListener('click', handleWeekSelection);
+            saveAllBtn.addEventListener('click', saveSchedules);
+            resetBtn.addEventListener('click', resetSchedules);
+            closeModalBtn.addEventListener('click', closeModal);
+            modalOverlay.addEventListener('click', closeModal);
+            modalWindow.addEventListener('click', (e) => e.stopPropagation());
+
+            // displayArea에 대한 통합 클릭 이벤트 리스너
+            displayArea.addEventListener('click', function (event) {
+                const target = event.target;
+                if (target.classList.contains('period-btn')) {
+                    const { view, year, month, week } = target.dataset;
+                    navigateToView(view, { year: parseInt(year), month: parseInt(month), weekNum: parseInt(week) });
+                }
+                if (target.classList.contains('copy-down-icon')) {
+                    const line = target.dataset.line;
+                    const columnIndex = parseInt(target.dataset.columnIndex);
+                    applyCopyToAllRows(line, columnIndex);
+                }
+                if (target.closest('#open-export-modal-btn')) {
+                    exportChoiceModal.classList.add('visible');
+                }
+            });
+
+            displayArea.addEventListener('change', handleTableInputChange);
+
+            // 다운로드 모달 관련 요소 가져오기 및 이벤트 리스너
+            const exportChoiceModal = document.getElementById('export-choice-modal');
+            const closeExportModalBtn = document.getElementById('close-export-modal-btn');
+            // ✨ 새 ID로 버튼 요소 가져오기
+            const exportPlanBtn = document.getElementById('export-plan-btn');
+            const exportReportBtn = document.getElementById('export-report-btn');
+
+            function closeExportModal() {
+                exportChoiceModal.classList.remove('visible');
+            }
+            closeExportModalBtn.addEventListener('click', closeExportModal);
+            exportChoiceModal.addEventListener('click', closeExportModal);
+            exportChoiceModal.querySelector('.modal-window').addEventListener('click', (e) => e.stopPropagation());
+
+            // ✨ 새 버튼에 이벤트 리스너 연결
+            exportPlanBtn.addEventListener('click', () => {
+                generateProductionPdf('plan'); // 'plan' 타입으로 함수 호출
+                closeExportModal();
+            });
+            exportReportBtn.addEventListener('click', () => {
+                generateProductionPdf('report'); // 'report' 타입으로 함수 호출
+                closeExportModal();
+            });
+
+            // 생산 일정 등록 모달의 +/- 버튼 이벤트 리스너
+            for (const line in lineControls) {
+                const control = lineControls[line];
+                control.addBtn.addEventListener('click', () => addNewScheduleRow(control.tableBody, line));
+                control.removeBtn.addEventListener('click', () => removeLastScheduleRow(control.tableBody));
+            }
+        });
+
+
+
+        // --- 기능 함수들 ---
+
+        // 수정 후
         function saveSchedules() {
             const allSchedules = [];
             for (const line in lineControls) {
@@ -109,14 +296,25 @@
                     const model = inputs[1].value;
                     const lot = inputs[2].value;
                     if (company || model || lot) {
-                        allSchedules.push({ line: row.querySelector('.line-cell').textContent, company, model, lot, startDate: selects[0].value, endDate: selects[1].value });
+                        allSchedules.push({
+                            line: row.querySelector('.line-cell').textContent,
+                            company, model, lot,
+                            startDate: selects[0].value,
+                            endDate: selects[1].value
+                        });
                     }
                 });
             }
+
             const storageKey = `week-${currentSelectedWeekInfo.year}-${currentSelectedWeekInfo.month}-${currentSelectedWeekInfo.weekNum}`;
             sessionStorage.setItem(storageKey, JSON.stringify(allSchedules));
+
             closeModal();
-            displayCurrentWeekSchedule();
+            alert("일정이 저장되었습니다.");
+
+            // 'navigateToView'를 호출하여 화면을 일관성 있게 갱신합니다.
+            renderContent();
+
         }
 
         function resetSchedules() {
@@ -135,18 +333,20 @@
         }
 
         function openWeekSelectorDropup() {
-            const today = new Date();
-            const currentYear = today.getFullYear();
-            const currentMonth = today.getMonth();
-            const productionWeeksSet = getProductionWeeksInMonth(currentYear, currentMonth);
-            const weekNumbers = Array.from(productionWeeksSet).sort((a,b)=>a-b);
+            const viewYear = currentView.data.year || new Date().getFullYear();
+            const viewMonth = currentView.data.month ? currentView.data.month - 1 : new Date().getMonth();
+
+            const productionWeeksSet = getProductionWeeksInMonth(viewYear, viewMonth);
+            const weekNumbers = Array.from(productionWeeksSet).sort((a, b) => a - b);
+
             weekSelectorGrid.innerHTML = '';
             weekNumbers.forEach(weekNum => {
                 const weekBox = document.createElement('div');
                 weekBox.className = 'week-box';
-                weekBox.textContent = `${currentMonth + 1}월 ${weekNum}주차`;
-                weekBox.dataset.year = currentYear;
-                weekBox.dataset.month = currentMonth + 1;
+                // 텍스트도 '보고 있는 달' 기준으로 표시
+                weekBox.textContent = `${viewMonth + 1}월 ${weekNum}주차`;
+                weekBox.dataset.year = viewYear;
+                weekBox.dataset.month = viewMonth + 1;
                 weekBox.dataset.week = weekNum;
                 weekSelectorGrid.appendChild(weekBox);
             });
@@ -168,7 +368,7 @@
                 closeWeekSelectorDropup();
             }
         }
-        
+
         function openModal(weekInfo) {
             currentSelectedWeekInfo = weekInfo;
             modalTitle.textContent = `${weekInfo.month}월${weekInfo.weekNum}주차 일정 등록`;
@@ -198,16 +398,13 @@
             }
             modalOverlay.classList.add('visible');
         }
-
         function closeModal() { modalOverlay.classList.remove('visible'); }
-
         function removeLastScheduleRow(targetTableBody) {
             const rowCount = targetTableBody.rows.length;
             if (rowCount > 0) {
                 targetTableBody.deleteRow(rowCount - 1);
             }
         }
-
         function addNewScheduleRow(targetTableBody, line) {
             const newRow = targetTableBody.insertRow();
             const lineCell = `<td class="line-cell">${line}</td>`;
@@ -217,15 +414,37 @@
             populateDateSelectors(currentSelectedWeekInfo, newRow);
             return newRow;
         }
-        
+
+        // [복원] 누락되었던 populateDateSelectors 함수
+        function populateDateSelectors(weekInfo, row) {
+            if (!row || !weekInfo.year) return;
+            const startDateSelect = row.querySelector('.start-date-select');
+            const endDateSelect = row.querySelector('.end-date-select');
+            startDateSelect.innerHTML = '';
+            endDateSelect.innerHTML = '';
+            const weekdays = getWeekdaysForWeek(weekInfo.year, weekInfo.month - 1, weekInfo.weekNum);
+            const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+            weekdays.forEach(item => {
+                const optionText = `${item.month}/${item.day}(${dayNames[item.dayOfWeek]})`;
+                const startOption = document.createElement('option');
+                startOption.value = optionText;
+                startOption.textContent = optionText;
+                startDateSelect.appendChild(startOption);
+                const endOption = document.createElement('option');
+                endOption.value = optionText;
+                endOption.textContent = optionText;
+                endDateSelect.appendChild(endOption);
+            });
+        }
+
         function renderContent() {
             const { mode, data } = currentView;
             if (mode === 'current_week' || mode === 'schedule_view') {
                 contentArea.classList.add('align-top');
-                displayArea.style.marginTop = '30px';
+                displayArea.style.marginTop = '5px';
             } else {
                 contentArea.classList.remove('align-top');
-                displayArea.style.marginTop = '0';
+                displayArea.style.marginTop = '5px';
             }
             switch (mode) {
                 case 'past_weeks': displayPastWeeks(); break;
@@ -237,21 +456,28 @@
                 default: displayCurrentWeekSchedule(); break;
             }
         }
-
         function navigateToView(newMode, data = {}) {
             if (currentView.mode !== newMode || JSON.stringify(currentView.data) !== JSON.stringify(data)) {
-                 viewHistory.push(currentView);
+                viewHistory.push(currentView);
+                forwardHistory = []; // ✨ 새로운 이동이므로, 앞으로 가기 기록은 모두 삭제
             }
             currentView = { mode: newMode, data: data };
             renderContent();
         }
-
         function goBackView() {
             if (viewHistory.length > 0) {
+                forwardHistory.push(currentView); // ✨ 현재 뷰를 forwardHistory에 추가
                 currentView = viewHistory.pop();
                 renderContent();
             } else {
-                window.location.href = 'index.html'; 
+                window.location.href = 'index.html';
+            }
+        }
+        function goForwardView() {
+            if (forwardHistory.length > 0) {
+                viewHistory.push(currentView); // ✨ 현재 뷰는 이제 과거 기록(viewHistory)이 됨
+                currentView = forwardHistory.pop(); // ✨ forwardHistory에서 가장 최근 뷰를 가져옴
+                renderContent();
             }
         }
         function cycleViewMode() {
@@ -263,8 +489,13 @@
         function handlePeriodButtonClick(event) {
             const target = event.target;
             if (target.classList.contains('period-btn')) {
+                // 'week' 대신 'weekNum'으로 받거나, 객체를 만들 때 'weekNum'으로 지정합니다.
                 const { view, year, month, week } = target.dataset;
-                navigateToView(view, { year: parseInt(year), month: parseInt(month), week: parseInt(week) });
+                navigateToView(view, {
+                    year: parseInt(year),
+                    month: parseInt(month),
+                    weekNum: parseInt(week) // 속성 이름을 weekNum 으로 변경
+                });
             }
         }
         function handleTableInputChange(event) {
@@ -318,15 +549,20 @@
         }
         function displayScheduleForWeek(year, month, weekNum) {
             currentView = { mode: 'schedule_view', data: { year, month, weekNum } };
+
+            const weekDisplay = document.getElementById('current-week-display');
+            weekDisplay.textContent = `${year}년 ${month}월 ${weekNum}주차`;
+
             contentArea.classList.add('align-top');
-            displayArea.style.marginTop = '30px';
+            displayArea.style.marginTop = '0px';
             const storageKey = `week-${year}-${month}-${weekNum}`;
+
             const progressKey = `progress-${storageKey}`;
             const savedData = JSON.parse(sessionStorage.getItem(storageKey)) || [];
             const progressData = JSON.parse(sessionStorage.getItem(progressKey)) || {};
-            const isReadOnly = (currentView.mode === 'schedule_view' && !(year === new Date().getFullYear() && month === new Date().getMonth() + 1 && weekNum === getCurrentWeekNumber(new Date())));
+            const isReadOnly = false;
             displayArea.innerHTML = createScheduleTableHTML(savedData, progressData, isReadOnly);
-            if (savedData.length > 0 && !isReadOnly) {
+            if (savedData.length > 0) {
                 const weekInfo = { year, month, weekNum };
                 populateDateSelectorsForProductionPage(weekInfo, progressData);
             }
@@ -365,7 +601,7 @@
         }
         function displayWeeksForMonth(year, month) {
             const productionWeeksSet = getProductionWeeksInMonth(year, month - 1);
-            const weekNumbers = Array.from(productionWeeksSet).sort((a,b) => a - b);
+            const weekNumbers = Array.from(productionWeeksSet).sort((a, b) => a - b);
             let contentHTML = `<div class="period-selector-grid">`;
             weekNumbers.forEach(weekNum => {
                 contentHTML += `<div class="period-btn" data-view="schedule_view" data-year="${year}" data-month="${month}" data-week="${weekNum}">${month}월 ${weekNum}주차</div>`;
@@ -381,59 +617,224 @@
                     if (schedulesByLine[schedule.line]) { schedulesByLine[schedule.line].push(schedule); }
                 });
             }
+
             let tableHTML = '';
+
+            // ✨ 변경점 1: 테이블 루프 바깥에 있던 다운로드 버튼 컨테이너 코드를 삭제합니다.
+
             for (const line in schedulesByLine) {
-                tableHTML += `<section class="line-schedule-section"><div class="line-header"><h3 class="line-title">${line}라인</h3></div>`;
+                // ✨ 변경점 2: line-header를 만드는 부분을 수정합니다.
+                let headerContent = `<h3 class="line-title">${line}라인</h3>`;
+
+                // A라인일 경우에만 다운로드 버튼을 추가합니다.
+                if (line === 'A') {
+                    headerContent += `
+                <button id="open-export-modal-btn" class="icon-btn" title="다운로드">
+                    <i class="fas fa-download"></i>
+                </button>
+            `;
+                }
+
+                tableHTML += `<section class="line-schedule-section" data-line="${line}">
+                        <div class="line-header">${headerContent}</div>`;
+
                 if (schedulesByLine[line].length > 0) {
-                    tableHTML += `<div class="table-container"><table class="editable-table production-view-table"><thead><tr><th>생산라인</th><th>담당자</th><th>업체</th><th>모델명</th><th>T/B</th><th>실생산</th><th>LOT</th><th>생산시작일</th><th>생산종료일</th><th>생산예정일</th></tr></thead><tbody>`;
+                    tableHTML += `<div class="table-container"><table class="editable-table production-view-table"><thead><tr>
+                <th>생산라인</th>
+                <th>담당자 <i class="fas fa-clone copy-down-icon" data-line="${line}" data-column-index="1"></i></th>
+                <th>업체 <i class="fas fa-clone copy-down-icon" data-line="${line}" data-column-index="2"></i></th>
+                <th>모델명</th>
+                <th>T/B</th>
+                <th>실생산</th>
+                <th>LOT</th>
+                <th>생산시작일</th>
+                <th>생산종료일</th>
+                <th>생산예정일</th>
+            </tr></thead><tbody>`;
+
                     tableHTML += schedulesByLine[line].map(s => {
                         const prog = progress[s.originalIndex] || {};
-                        if (isReadOnly) {
-                            return `<tr data-row-index="${s.originalIndex}">
-                                        <td class="line-cell">${s.line}</td> <td>${prog.manager || ''}</td> <td>${s.company}</td> <td>${s.model}</td> <td>${prog.tb || 'Top'}</td> <td>${prog.actualProd || ''}</td> <td>${s.lot}</td> <td>${prog.prodStart || '-'}</td> <td>${prog.prodEnd || '-'}</td> <td>${s.startDate} ~ ${s.endDate}</td>
-                                    </tr>`;
-                        } else {
-                            return `<tr data-row-index="${s.originalIndex}">
-                                        <td class="line-cell">${s.line}</td>
-                                        <td><input type="text" class="form-input" data-input-type="progress" value="${prog.manager || ''}"></td>
-                                        <td class="data-cell"><input type="text" class="form-input" data-input-type="original" value="${s.company}"></td>
-                                        <td class="data-cell"><input type="text" class="form-input" data-input-type="original" value="${s.model}"></td>
-                                        <td><select class="form-select" data-input-type="progress"><option ${prog.tb === 'Top' ? 'selected' : ''}>Top</option><option ${prog.tb === 'Bottom' ? 'selected' : ''}>Bottom</option><option ${prog.tb === 'Top Only' ? 'selected' : ''}>Top Only</option><option ${prog.tb === 'Bottom Only' ? 'selected' : ''}>Bottom Only</option></select></td>
-                                        <td><input type="text" class="form-input" data-input-type="progress" value="${prog.actualProd || ''}"></td>
-                                        <td class="data-cell"><input type="text" class="form-input" data-input-type="original" value="${s.lot}"></td>
-                                        <td><select class="form-select prod-start-date" data-input-type="progress"></select></td>
-                                        <td><select class="form-select prod-end-date" data-input-type="progress"></select></td>
-                                        <td>${s.startDate} ~ ${s.endDate}</td>
-                                    </tr>`;
-                        }
+                        return `<tr data-row-index="${s.originalIndex}">
+                    <td class="line-cell">${s.line}</td>
+                    <td><input type="text" class="form-input" data-input-type="progress" value="${prog.manager || ''}"></td>
+                    <td><input type="text" class="form-input" data-input-type="original" value="${s.company}"></td>
+                    <td><input type="text" class="form-input" data-input-type="original" value="${s.model}"></td>
+                    <td><select class="form-select" data-input-type="progress"><option ${prog.tb === 'Top' ? 'selected' : ''}>Top</option><option ${prog.tb === 'Bottom' ? 'selected' : ''}>Bottom</option><option ${prog.tb === 'Top Only' ? 'selected' : ''}>Top Only</option><option ${prog.tb === 'Bottom Only' ? 'selected' : ''}>Bottom Only</option></select></td>
+                    <td><input type="text" class="form-input" data-input-type="progress" value="${prog.actualProd || ''}"></td>
+                    <td><input type="text" class="form-input" data-input-type="original" value="${s.lot}"></td>
+                    <td><select class="form-select prod-start-date" data-input-type="progress"></select></td>
+                    <td><select class="form-select prod-end-date" data-input-type="progress"></select></td>
+                    <td>${s.startDate} ~ ${s.endDate}</td>
+                </tr>`;
                     }).join('');
                     tableHTML += `</tbody></table></div>`;
-                } else { tableHTML += `<p class="no-line-data-message">${line}라인은 등록된 생산 일정이 없습니다.</p>`; }
+                } else {
+                    tableHTML += `<p class="no-line-data-message">${line}라인은 등록된 생산 일정이 없습니다.</p>`;
+                }
                 tableHTML += `</section>`;
             }
             return tableHTML;
         }
+        function applyCopyToAllRows(line, columnIndex) {
+            // 1. 해당 라인의 테이블 요소를 찾습니다.
+            const tableBody = document.querySelector(`#schedule-display-area .line-schedule-section[data-line="${line}"] tbody`);
+            if (!tableBody) return;
 
-        // [복원] 누락되었던 헬퍼 함수들
-        function populateDateSelectors(weekInfo, row) {
-            if (!row || !weekInfo.year) return;
-            const startDateSelect = row.querySelector('.start-date-select');
-            const endDateSelect = row.querySelector('.end-date-select');
-            startDateSelect.innerHTML = ''; endDateSelect.innerHTML = '';
-            const weekdays = getWeekdaysForWeek(weekInfo.year, weekInfo.month - 1, weekInfo.weekNum);
-            const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-            weekdays.forEach(item => {
-                const optionText = `${item.month}/${item.day}(${dayNames[item.dayOfWeek]})`;
-                const startOption = document.createElement('option');
-                startOption.value = optionText;
-                startOption.textContent = optionText;
-                startDateSelect.appendChild(startOption);
-                const endOption = document.createElement('option');
-                endOption.value = optionText;
-                endOption.textContent = optionText;
-                endDateSelect.appendChild(endOption);
-            });
+            const rows = tableBody.querySelectorAll('tr');
+            if (rows.length < 2) return; // 복사할 행이 없으면 종료
+
+            // 2. 첫 번째 행의 입력 값을 가져옵니다.
+            const firstInput = rows[0].querySelectorAll('td')[columnIndex].querySelector('input');
+            if (!firstInput) return;
+            const valueToCopy = firstInput.value;
+
+            // 3. 두 번째 행부터 마지막 행까지 루프를 돕니다.
+            for (let i = 1; i < rows.length; i++) {
+                const currentInput = rows[i].querySelectorAll('td')[columnIndex].querySelector('input');
+                if (currentInput) {
+                    currentInput.value = valueToCopy;
+
+                    // 4. 중요: 값 변경 후 'change' 이벤트를 강제로 발생시켜 자동 저장 로직을 트리거합니다.
+                    currentInput.dispatchEvent(new Event('change', { 'bubbles': true }));
+                }
+            }
+            const columnName = columnIndex === 1 ? '담당자' : '업체';
+            alert(`${line}라인의 모든 '${columnName}' 필드가 업데이트되었습니다.`);
         }
+        // --- 기능 함수들 --- 섹션에 추가
+        function generateProductionPdf(reportType) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const isPlan = reportType === 'plan';
+
+            // --- 1. 기본 데이터 로딩 ---
+            const { year, month, weekNum } = currentView.data;
+            const storageKey = `week-${year}-${month}-${weekNum}`;
+            const progressKey = `progress-${storageKey}`;
+            const scheduleData = JSON.parse(sessionStorage.getItem(storageKey)) || [];
+            const progressData = JSON.parse(sessionStorage.getItem(progressKey)) || {};
+
+            if (scheduleData.length === 0) {
+                alert("다운로드할 데이터가 없습니다.");
+                return;
+            }
+
+            addPaperlogyFont(doc);
+            doc.setFont('Paperlogy', 'normal');
+
+            // --- 2. 보고서 타입에 따라 제목, 헤더 변경 ---
+            const title = isPlan ? `${year}년 ${month}월 ${weekNum}주차 생산계획서` : `${year}년 ${month}월 ${weekNum}주차 생산보고서`;
+            const head = isPlan
+                ? [['업체', '모델명', 'LOT', '월', '화', '수', '목', '금']]
+                : [['담당자', '업체', '모델명', 'LOT', 'T/B', '실생산', '월', '화', '수', '목', '금']];
+
+            doc.setFontSize(20);
+            doc.text(title, 14, 7);
+
+            // --- 3. 보고서 타입에 따른 컬럼 스타일(너비) 정의 ---
+            const dayColumnWidth = 8; // 요일 칸 고정 너비
+            const columnStyles = isPlan
+                ? { // 생산계획서 컬럼 너비
+                    0: { cellWidth: 25 },         // 업체
+                    1: { cellWidth: 'auto' },     // 모델명 (남는 공간 모두 사용)
+                    2: { cellWidth: 15 },         // LOT
+                    3: { cellWidth: dayColumnWidth }, 4: { cellWidth: dayColumnWidth }, 5: { cellWidth: dayColumnWidth }, 6: { cellWidth: dayColumnWidth }, 7: { cellWidth: dayColumnWidth },
+                }
+                : { // 생산보고서 컬럼 너비
+                    0: { cellWidth: 17 },         // 담당자
+                    1: { cellWidth: 17 },         // 업체
+                    2: { cellWidth: 'auto' },     // 모델명 (남는 공간 모두 사용)
+                    3: { cellWidth: 15 },         // LOT
+                    4: { cellWidth: 25 },         // T/B
+                    5: { cellWidth: 15 },         // 실생산
+                    6: { cellWidth: dayColumnWidth }, 7: { cellWidth: dayColumnWidth }, 8: { cellWidth: dayColumnWidth }, 9: { cellWidth: dayColumnWidth }, 10: { cellWidth: dayColumnWidth },
+                };
+
+            // --- 4. 데이터 그룹화 및 테이블 생성 ---
+            const dataByLine = { A: [], B: [], C: [] };
+            scheduleData.forEach((item, index) => {
+                if (dataByLine[item.line]) {
+                    dataByLine[item.line].push({ ...item, originalIndex: index });
+                }
+            });
+
+            const daysOrder = ['월', '화', '수', '목', '금'];
+            let lastY = 28;
+
+            ['A', 'B', 'C'].forEach(line => {
+                const lineItems = dataByLine[line];
+                if (lineItems.length > 0) {
+                    doc.setFontSize(14);
+                    doc.setFont('Paperlogy', 'normal');
+                    doc.text(`${line}라인`, 14, lastY + 10); // '라인' 텍스트 추가
+
+                    const body = lineItems.map(item => { /* --- 내용 채움 시작 --- */
+                        const progress = progressData[item.originalIndex] || {};
+                        const getDay = (dateStr) => {
+                            if (!dateStr) return null;
+                            return (dateStr.match(/\(([^)]+)\)/) || [])[1];
+                        };
+
+                        const startDay = isPlan ? getDay(item.startDate) : getDay(progress.prodStart);
+                        const endDay = isPlan ? getDay(item.endDate) : getDay(progress.prodEnd);
+
+                        let inRange = false;
+                        const dayFlags = daysOrder.map(day => {
+                            if (day === startDay) inRange = true;
+                            let flag = inRange ? 1 : 0;
+                            if (day === endDay) inRange = false;
+                            return flag;
+                        });
+
+                        if (isPlan) {
+                            return [item.company, item.model, item.lot, ...dayFlags];
+                        } else {
+                            return [
+                                progress.manager || '',
+                                item.company,
+                                item.model,
+                                item.lot,
+                                progress.tb || 'Top',
+                                progress.actualProd || '',
+                                ...dayFlags
+                            ];
+                        }
+                    }); /* --- 내용 채움 끝 --- */
+
+                    doc.autoTable({
+                        head: head,
+                        body: body,
+                        startY: lastY + 15,
+                        theme: 'grid',
+                        styles: { font: 'Paperlogy', fontStyle: 'normal', fontSize: 9, lineWidth: 0.1, lineColor: [150, 150, 150], halign: 'center' },
+                        headStyles: { /* --- 내용 채움 시작 --- */
+                            fontStyle: 'normal'
+                        }, /* --- 내용 채움 끝 --- */
+                        columnStyles: columnStyles,
+                        didDrawCell: function (data) { /* --- 내용 채움 시작 --- */
+                            const dayColumnStartIndex = isPlan ? 3 : 6;
+                            if (data.column.index >= dayColumnStartIndex && data.cell.section === 'body') {
+                                if (data.cell.raw === 1) {
+                                    doc.setFillColor(255, 255, 0);
+                                } else {
+                                    doc.setFillColor(255, 255, 255);
+                                }
+                                doc.setDrawColor(150, 150, 150);
+                                doc.rect(data.cell.x, data.cell.y, data.cell.width, data.cell.height, 'FD');
+                                data.cell.text = [''];
+                            }
+                        } /* --- 내용 채움 끝 --- */
+                    });
+
+                    lastY = doc.autoTable.previous.finalY;
+                }
+            });
+
+            // 5. 파일 저장
+            const fileName = isPlan ? '생산계획서' : '생산보고서';
+            doc.save(`${year}년-${month}월-${weekNum}주차_${fileName}.pdf`);
+        }
+
         function populateDateSelectorsForProductionPage(weekInfo, progressData) {
             const weekdays = getWeekdaysForWeek(weekInfo.year, weekInfo.month - 1, weekInfo.weekNum);
             const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
@@ -446,7 +847,7 @@
                 const rowIndex = row.dataset.rowIndex;
                 const savedStart = progressData[rowIndex] ? progressData[rowIndex].prodStart : '-';
                 select.innerHTML = ''; select.appendChild(createOption('-', '-'));
-                weekdays.forEach(item => { const optionText = `${item.month}/${item.day}(${dayNames[item.dayOfWeek]})`; const option = createOption(optionText, optionText); if(optionText === savedStart) option.selected = true; select.appendChild(option); });
+                weekdays.forEach(item => { const optionText = `${item.month}/${item.day}(${dayNames[item.dayOfWeek]})`; const option = createOption(optionText, optionText); if (optionText === savedStart) option.selected = true; select.appendChild(option); });
             });
             allEndDateSelects.forEach(select => {
                 const row = select.closest('tr');
@@ -454,7 +855,7 @@
                 const rowIndex = row.dataset.rowIndex;
                 const savedEnd = progressData[rowIndex] ? progressData[rowIndex].prodEnd : '-';
                 select.innerHTML = ''; select.appendChild(createOption('-', '-'));
-                weekdays.forEach(item => { const optionText = `${item.month}/${item.day}(${dayNames[item.dayOfWeek]})`; const option = createOption(optionText, optionText); if(optionText === savedEnd) option.selected = true; select.appendChild(option); });
+                weekdays.forEach(item => { const optionText = `${item.month}/${item.day}(${dayNames[item.dayOfWeek]})`; const option = createOption(optionText, optionText); if (optionText === savedEnd) option.selected = true; select.appendChild(option); });
             });
         }
         function getWeekdaysForWeek(year, month, weekNum) {
@@ -504,6 +905,8 @@
             timeDisplay.textContent = formattedTime;
         }
         setInterval(updateTime, 1000);
+
     </script>
 </body>
+
 </html>

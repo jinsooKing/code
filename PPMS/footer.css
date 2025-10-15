@@ -16,5 +16,8 @@
     justify-content: flex-start;
     gap: 15px;
 }
-.footer-center { justify-content: center; }
+.footer-center {
+    justify-content: center;
+    gap : 10px;
+}
 .footer-right { justify-content: flex-end; }
