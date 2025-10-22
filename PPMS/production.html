@@ -16,6 +16,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
 </head>
 
+cd
+
 <body>
     <div class="page-container">
         <header class="main-header">
@@ -502,6 +504,17 @@
             const target = event.target;
             const row = target.closest('tr');
             if (!row) return;
+
+            if (target.classList.contains('prod-start-date') || target.classList.contains('prod-end-date')) {
+                updateDayCellStyles(row);
+            }
+
+            // ✨ LOT나 실생산 값이 바뀌면 진행률 업데이트
+            const field = target.dataset.field;
+            if (field === 'lot' || field === 'actualProd') {
+                const line = row.dataset.line;
+                if (line) updateLineProgress(line);
+            }
             const rowIndex = row.dataset.rowIndex;
             const inputType = target.dataset.inputType;
             const { year, month, weekNum } = currentView.data;
@@ -549,23 +562,46 @@
         }
         function displayScheduleForWeek(year, month, weekNum) {
             currentView = { mode: 'schedule_view', data: { year, month, weekNum } };
-
-            const weekDisplay = document.getElementById('current-week-display');
             weekDisplay.textContent = `${year}년 ${month}월 ${weekNum}주차`;
-
             contentArea.classList.add('align-top');
-            displayArea.style.marginTop = '0px';
             const storageKey = `week-${year}-${month}-${weekNum}`;
-
             const progressKey = `progress-${storageKey}`;
             const savedData = JSON.parse(sessionStorage.getItem(storageKey)) || [];
             const progressData = JSON.parse(sessionStorage.getItem(progressKey)) || {};
-            const isReadOnly = false;
-            displayArea.innerHTML = createScheduleTableHTML(savedData, progressData, isReadOnly);
+
+            displayArea.innerHTML = createScheduleTableHTML(savedData, progressData, false);
+
             if (savedData.length > 0) {
                 const weekInfo = { year, month, weekNum };
                 populateDateSelectorsForProductionPage(weekInfo, progressData);
             }
+
+            // ✨ 화면 로드 후 모든 라인의 진행률 초기 계산
+            ['A', 'B', 'C'].forEach(line => updateLineProgress(line));
+        }
+        function updateLineProgress(line) {
+            const section = document.querySelector(`.line-schedule-section[data-line="${line}"]`);
+            if (!section) return;
+
+            let totalLot = 0;
+            let totalActual = 0;
+
+            const rows = section.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const lotInput = row.querySelector('input[data-field="lot"]');
+                const actualInput = row.querySelector('input[data-field="actualProd"]');
+
+                totalLot += parseInt(lotInput.value) || 0;
+                totalActual += parseInt(actualInput.value) || 0;
+            });
+
+            const percentage = totalLot > 0 ? (totalActual / totalLot) * 100 : 0;
+            const displayPercentage = Math.min(percentage, 100);
+
+            const bar = document.getElementById(`progress-bar-${line}`);
+            const text = document.getElementById(`progress-text-${line}`);
+            if (bar) bar.style.width = `${displayPercentage}%`;
+            if (text) text.textContent = `${Math.round(displayPercentage)}%`;
         }
         function displayPastWeeks() {
             const today = new Date();
@@ -609,6 +645,8 @@
             contentHTML += `</div>`;
             displayArea.innerHTML = contentHTML;
         }
+        // 기존 createScheduleTableHTML 함수를 아래 코드로 완전히 교체해주세요.
+
         function createScheduleTableHTML(schedules, progress, isReadOnly = false) {
             const schedulesByLine = { A: [], B: [], C: [] };
             if (schedules && schedules.length > 0) {
@@ -619,34 +657,31 @@
             }
 
             let tableHTML = '';
-
-            // ✨ 변경점 1: 테이블 루프 바깥에 있던 다운로드 버튼 컨테이너 코드를 삭제합니다.
-
             for (const line in schedulesByLine) {
-                // ✨ 변경점 2: line-header를 만드는 부분을 수정합니다.
-                let headerContent = `<h3 class="line-title">${line}라인</h3>`;
-
-                // A라인일 경우에만 다운로드 버튼을 추가합니다.
+                // 라인 헤더에 프로그레스 바 UI를 추가하는 부분은 그대로 유지합니다.
+                let headerContent = `
+            <div class="line-title-container">
+                <h3 class="line-title">${line}라인</h3>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" id="progress-bar-${line}"></div>
+                    <span class="progress-bar-text" id="progress-text-${line}">0%</span>
+                </div>
+            </div>
+        `;
                 if (line === 'A') {
-                    headerContent += `
-                <button id="open-export-modal-btn" class="icon-btn" title="다운로드">
-                    <i class="fas fa-download"></i>
-                </button>
-            `;
+                    headerContent += `<button id="open-export-modal-btn" class="icon-btn" title="다운로드"><i class="fas fa-download"></i></button>`;
                 }
+                tableHTML += `<section class="line-schedule-section" data-line="${line}"><div class="line-header">${headerContent}</div>`;
 
-                tableHTML += `<section class="line-schedule-section" data-line="${line}">
-                        <div class="line-header">${headerContent}</div>`;
-
+                // ✨ 테이블 구조를 원래의 웹페이지 형태로 되돌립니다.
                 if (schedulesByLine[line].length > 0) {
                     tableHTML += `<div class="table-container"><table class="editable-table production-view-table"><thead><tr>
-                <th>생산라인</th>
-                <th>담당자 <i class="fas fa-clone copy-down-icon" data-line="${line}" data-column-index="1"></i></th>
-                <th>업체 <i class="fas fa-clone copy-down-icon" data-line="${line}" data-column-index="2"></i></th>
+                <th>담당자 <i class="fas fa-clone copy-down-icon" data-line="${line}" data-column-index="0"></i></th>
+                <th>업체 <i class="fas fa-clone copy-down-icon" data-line="${line}" data-column-index="1"></i></th>
                 <th>모델명</th>
+                <th>LOT</th>
                 <th>T/B</th>
                 <th>실생산</th>
-                <th>LOT</th>
                 <th>생산시작일</th>
                 <th>생산종료일</th>
                 <th>생산예정일</th>
@@ -654,14 +689,13 @@
 
                     tableHTML += schedulesByLine[line].map(s => {
                         const prog = progress[s.originalIndex] || {};
-                        return `<tr data-row-index="${s.originalIndex}">
-                    <td class="line-cell">${s.line}</td>
+                        return `<tr data-row-index="${s.originalIndex}" data-line="${line}">
                     <td><input type="text" class="form-input" data-input-type="progress" value="${prog.manager || ''}"></td>
                     <td><input type="text" class="form-input" data-input-type="original" value="${s.company}"></td>
                     <td><input type="text" class="form-input" data-input-type="original" value="${s.model}"></td>
+                    <td><input type="text" class="form-input" data-input-type="original" data-field="lot" value="${s.lot}"></td>
                     <td><select class="form-select" data-input-type="progress"><option ${prog.tb === 'Top' ? 'selected' : ''}>Top</option><option ${prog.tb === 'Bottom' ? 'selected' : ''}>Bottom</option><option ${prog.tb === 'Top Only' ? 'selected' : ''}>Top Only</option><option ${prog.tb === 'Bottom Only' ? 'selected' : ''}>Bottom Only</option></select></td>
-                    <td><input type="text" class="form-input" data-input-type="progress" value="${prog.actualProd || ''}"></td>
-                    <td><input type="text" class="form-input" data-input-type="original" value="${s.lot}"></td>
+                    <td><input type="text" class="form-input" data-input-type="progress" data-field="actualProd" value="${prog.actualProd || ''}"></td>
                     <td><select class="form-select prod-start-date" data-input-type="progress"></select></td>
                     <td><select class="form-select prod-end-date" data-input-type="progress"></select></td>
                     <td>${s.startDate} ~ ${s.endDate}</td>
