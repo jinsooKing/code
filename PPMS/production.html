@@ -16,8 +16,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
 </head>
 
-cd
-
 <body>
     <div class="page-container">
         <header class="main-header">
@@ -230,6 +228,21 @@ cd
             modalOverlay.addEventListener('click', closeModal);
             modalWindow.addEventListener('click', (e) => e.stopPropagation());
 
+            displayArea.addEventListener('input', function (event) {
+                const target = event.target;
+
+                if (target.dataset.field === 'lot') {
+                    const originalValue = target.value;
+                    const sanitizedValue = originalValue.replace(/[^0-9/]/g, '');
+
+                    if (originalValue !== sanitizedValue) {
+                        target.value = sanitizedValue;
+                        // ✨ 잘못된 입력이 감지되면 안내 메시지 호출
+                        showValidationMessage(target, "숫자와 '/'만 입력 가능합니다.");
+                    }
+                }
+            });
+
             // displayArea에 대한 통합 클릭 이벤트 리스너
             displayArea.addEventListener('click', function (event) {
                 const target = event.target;
@@ -284,6 +297,34 @@ cd
 
 
         // --- 기능 함수들 ---
+
+        // 기존 showValidationMessage 함수를 아래 코드로 교체
+        function showValidationMessage(targetElement, message) {
+            const parentCell = targetElement.parentElement;
+            let messageEl = parentCell.querySelector('.validation-message');
+
+            if (!messageEl) {
+                messageEl = document.createElement('span');
+                messageEl.className = 'validation-message';
+                parentCell.appendChild(messageEl);
+            }
+
+            messageEl.textContent = message;
+            messageEl.classList.add('visible');
+
+            // ✨ 수정된 부분:
+            // 이전에 이 메시지'만'을 위한 타이머가 있었다면 취소
+            const existingTimeout = messageEl.dataset.timeoutId;
+            if (existingTimeout) {
+                clearTimeout(existingTimeout);
+            }
+
+            // 새로운 타이머를 설정하고, 그 ID를 메시지 요소 자체에 저장
+            const newTimeout = setTimeout(() => {
+                messageEl.classList.remove('visible');
+            }, 2000);
+            messageEl.dataset.timeoutId = newTimeout;
+        }
 
         // 수정 후
         function saveSchedules() {
@@ -505,10 +546,6 @@ cd
             const row = target.closest('tr');
             if (!row) return;
 
-            if (target.classList.contains('prod-start-date') || target.classList.contains('prod-end-date')) {
-                updateDayCellStyles(row);
-            }
-
             // ✨ LOT나 실생산 값이 바뀌면 진행률 업데이트
             const field = target.dataset.field;
             if (field === 'lot' || field === 'actualProd') {
@@ -520,6 +557,7 @@ cd
             const { year, month, weekNum } = currentView.data;
             const currentWeekStorageKey = `week-${year}-${month}-${weekNum}`;
             const progressStorageKey = `progress-${currentWeekStorageKey}`;
+
             if (inputType === 'progress') {
                 saveProductionProgress(rowIndex, progressStorageKey);
             } else if (inputType === 'original') {
@@ -658,7 +696,6 @@ cd
 
             let tableHTML = '';
             for (const line in schedulesByLine) {
-                // 라인 헤더에 프로그레스 바 UI를 추가하는 부분은 그대로 유지합니다.
                 let headerContent = `
             <div class="line-title-container">
                 <h3 class="line-title">${line}라인</h3>
@@ -673,28 +710,29 @@ cd
                 }
                 tableHTML += `<section class="line-schedule-section" data-line="${line}"><div class="line-header">${headerContent}</div>`;
 
-                // ✨ 테이블 구조를 원래의 웹페이지 형태로 되돌립니다.
                 if (schedulesByLine[line].length > 0) {
+                    // ✨ 1. thead 수정: 'T/B'와 '생산예정일' 너비 교체
                     tableHTML += `<div class="table-container"><table class="editable-table production-view-table"><thead><tr>
-                <th>담당자 <i class="fas fa-clone copy-down-icon" data-line="${line}" data-column-index="0"></i></th>
-                <th>업체 <i class="fas fa-clone copy-down-icon" data-line="${line}" data-column-index="1"></i></th>
-                <th>모델명</th>
-                <th>LOT</th>
-                <th>T/B</th>
-                <th>실생산</th>
-                <th>생산시작일</th>
-                <th>생산종료일</th>
-                <th>생산예정일</th>
-            </tr></thead><tbody>`;
+                        <th>담당자 <i class="fas fa-clone copy-down-icon" data-line="${line}" data-column-index="0"></i></th>
+                        <th>업체 <i class="fas fa-clone copy-down-icon" data-line="${line}" data-column-index="1"></i></th>
+                        <th>모델명</th>
+                        <th>T/B</th>
+                        <th>LOT</th>
+                        <th>실생산</th>
+                        <th>생산시작일</th>
+                        <th>생산종료일</th>
+                        <th>생산예정일</th>
+                    </tr></thead><tbody>`;
 
                     tableHTML += schedulesByLine[line].map(s => {
                         const prog = progress[s.originalIndex] || {};
+                        // ✨ 2. tbody 순서 및 구조는 이전과 동일하게 유지
                         return `<tr data-row-index="${s.originalIndex}" data-line="${line}">
                     <td><input type="text" class="form-input" data-input-type="progress" value="${prog.manager || ''}"></td>
                     <td><input type="text" class="form-input" data-input-type="original" value="${s.company}"></td>
                     <td><input type="text" class="form-input" data-input-type="original" value="${s.model}"></td>
-                    <td><input type="text" class="form-input" data-input-type="original" data-field="lot" value="${s.lot}"></td>
                     <td><select class="form-select" data-input-type="progress"><option ${prog.tb === 'Top' ? 'selected' : ''}>Top</option><option ${prog.tb === 'Bottom' ? 'selected' : ''}>Bottom</option><option ${prog.tb === 'Top Only' ? 'selected' : ''}>Top Only</option><option ${prog.tb === 'Bottom Only' ? 'selected' : ''}>Bottom Only</option></select></td>
+                    <td><input type="text" class="form-input" data-input-type="original" data-field="lot" value="${s.lot}"></td>
                     <td><input type="text" class="form-input" data-input-type="progress" data-field="actualProd" value="${prog.actualProd || ''}"></td>
                     <td><select class="form-select prod-start-date" data-input-type="progress"></select></td>
                     <td><select class="form-select prod-end-date" data-input-type="progress"></select></td>
@@ -758,29 +796,26 @@ cd
 
             // --- 2. 보고서 타입에 따라 제목, 헤더 변경 ---
             const title = isPlan ? `${year}년 ${month}월 ${weekNum}주차 생산계획서` : `${year}년 ${month}월 ${weekNum}주차 생산보고서`;
+
+            // ▼ [수정 1] 생산보고서의 'LOT'와 'T/B' 헤더 위치 변경
             const head = isPlan
                 ? [['업체', '모델명', 'LOT', '월', '화', '수', '목', '금']]
-                : [['담당자', '업체', '모델명', 'LOT', 'T/B', '실생산', '월', '화', '수', '목', '금']];
+                : [['담당자', '업체', '모델명', 'T/B', 'LOT', '실생산', '월', '화', '수', '목', '금']];
 
             doc.setFontSize(20);
             doc.text(title, 14, 7);
 
             // --- 3. 보고서 타입에 따른 컬럼 스타일(너비) 정의 ---
-            const dayColumnWidth = 8; // 요일 칸 고정 너비
+            // 컬럼 너비는 동일하여 스타일 수정은 필요 없습니다.
+            const dayColumnWidth = 8;
             const columnStyles = isPlan
-                ? { // 생산계획서 컬럼 너비
-                    0: { cellWidth: 25 },         // 업체
-                    1: { cellWidth: 'auto' },     // 모델명 (남는 공간 모두 사용)
-                    2: { cellWidth: 15 },         // LOT
+                ? {
+                    0: { cellWidth: 25 }, 1: { cellWidth: 'auto' }, 2: { cellWidth: 15 },
                     3: { cellWidth: dayColumnWidth }, 4: { cellWidth: dayColumnWidth }, 5: { cellWidth: dayColumnWidth }, 6: { cellWidth: dayColumnWidth }, 7: { cellWidth: dayColumnWidth },
                 }
-                : { // 생산보고서 컬럼 너비
-                    0: { cellWidth: 17 },         // 담당자
-                    1: { cellWidth: 17 },         // 업체
-                    2: { cellWidth: 'auto' },     // 모델명 (남는 공간 모두 사용)
-                    3: { cellWidth: 15 },         // LOT
-                    4: { cellWidth: 25 },         // T/B
-                    5: { cellWidth: 15 },         // 실생산
+                : {
+                    0: { cellWidth: 20 }, 1: { cellWidth: 17 }, 2: { cellWidth: 'auto' },
+                    3: { cellWidth: 17 }, 4: { cellWidth: 17 }, 5: { cellWidth: 13 },
                     6: { cellWidth: dayColumnWidth }, 7: { cellWidth: dayColumnWidth }, 8: { cellWidth: dayColumnWidth }, 9: { cellWidth: dayColumnWidth }, 10: { cellWidth: dayColumnWidth },
                 };
 
@@ -800,40 +835,48 @@ cd
                 if (lineItems.length > 0) {
                     doc.setFontSize(14);
                     doc.setFont('Paperlogy', 'normal');
-                    doc.text(`${line}라인`, 14, lastY + 10); // '라인' 텍스트 추가
+                    doc.text(`${line}라인`, 14, lastY + 10);
 
-                    const body = lineItems.map(item => { /* --- 내용 채움 시작 --- */
+                    const body = lineItems.map(item => {
+                        // ▼▼▼▼▼ 여기부터 디버깅 코드 추가 ▼▼▼▼▼
+                        console.log(`--- Row Index: ${item.originalIndex} 디버깅 ---`);
                         const progress = progressData[item.originalIndex] || {};
-                        const getDay = (dateStr) => {
-                            if (!dateStr) return null;
-                            return (dateStr.match(/\(([^)]+)\)/) || [])[1];
-                        };
+                        const getDay = (dateStr) => (dateStr && dateStr.match(/\(([^)]+)\)/)) ? dateStr.match(/\(([^)]+)\)/)[1] : null;
 
                         const startDay = isPlan ? getDay(item.startDate) : getDay(progress.prodStart);
                         const endDay = isPlan ? getDay(item.endDate) : getDay(progress.prodEnd);
 
-                        let inRange = false;
-                        const dayFlags = daysOrder.map(day => {
-                            if (day === startDay) inRange = true;
-                            let flag = inRange ? 1 : 0;
-                            if (day === endDay) inRange = false;
-                            return flag;
+                        const startIndex = daysOrder.indexOf(startDay);
+                        const endIndex = daysOrder.indexOf(endDay);
+
+                        const finalEndIndex = (startIndex > -1 && endIndex === -1) ? startIndex : endIndex;
+
+                        const dayFlags = daysOrder.map((day, index) => {
+                            if (startIndex > -1 && finalEndIndex > -1 && startIndex <= finalEndIndex) {
+                                return (index >= startIndex && index <= finalEndIndex) ? 1 : 0;
+                            }
+                            return 0;
                         });
+
+                        console.log(`날짜 값: 시작=${progress.prodStart}, 종료=${progress.prodEnd}`);
+                        console.log(`추출된 요일: 시작=${startDay}, 종료=${endDay}`);
+                        console.log('최종 요일 플래그:', dayFlags);
 
                         if (isPlan) {
                             return [item.company, item.model, item.lot, ...dayFlags];
                         } else {
+                            // ▼ [수정 1] 생산보고서의 데이터 순서를 헤더와 일치시킴
                             return [
                                 progress.manager || '',
                                 item.company,
                                 item.model,
-                                item.lot,
-                                progress.tb || 'Top',
+                                progress.tb || 'Top', // T/B
+                                item.lot,            // LOT
                                 progress.actualProd || '',
                                 ...dayFlags
                             ];
                         }
-                    }); /* --- 내용 채움 끝 --- */
+                    });
 
                     doc.autoTable({
                         head: head,
@@ -841,23 +884,21 @@ cd
                         startY: lastY + 15,
                         theme: 'grid',
                         styles: { font: 'Paperlogy', fontStyle: 'normal', fontSize: 9, lineWidth: 0.1, lineColor: [150, 150, 150], halign: 'center' },
-                        headStyles: { /* --- 내용 채움 시작 --- */
-                            fontStyle: 'normal'
-                        }, /* --- 내용 채움 끝 --- */
+                        headStyles: { fontStyle: 'normal' },
                         columnStyles: columnStyles,
-                        didDrawCell: function (data) { /* --- 내용 채움 시작 --- */
+                        didDrawCell: function (data) {
                             const dayColumnStartIndex = isPlan ? 3 : 6;
                             if (data.column.index >= dayColumnStartIndex && data.cell.section === 'body') {
                                 if (data.cell.raw === 1) {
-                                    doc.setFillColor(255, 255, 0);
+                                    doc.setFillColor(255, 255, 0); // 노란색
                                 } else {
-                                    doc.setFillColor(255, 255, 255);
+                                    doc.setFillColor(255, 255, 255); // 흰색
                                 }
                                 doc.setDrawColor(150, 150, 150);
                                 doc.rect(data.cell.x, data.cell.y, data.cell.width, data.cell.height, 'FD');
                                 data.cell.text = [''];
                             }
-                        } /* --- 내용 채움 끝 --- */
+                        }
                     });
 
                     lastY = doc.autoTable.previous.finalY;

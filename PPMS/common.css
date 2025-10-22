@@ -37,19 +37,15 @@ a {
     color: #FFFFFF;
     font-weight: bold;
     white-space: nowrap;
+
     border: 1px solid #555;
     border-bottom: 3px solid #333;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-size: clamp(6px, 1.2vw, 30px);
+
 }
 
 /* 폰트 크기 유틸리티 클래스 */
-.font-15pt {
-    font-size: 1rem;
-}
-
-.font-35pt {
-    font-size: 2.3rem;
-}
 
 .font-45pt {
     font-size: 3rem;
@@ -237,9 +233,12 @@ a {
 }
 
 .line-title {
-    font-size: 1.2rem;
-    color: #FFFFFF;
+    /* 최소 18px, 이상적으로는 화면 너비의 2.2%, 최대 24px */
+    font-size: clamp(12px, 2.2vw, 24px);
     margin: 0;
+
+    color : #eaeaea
+
 }
 
 .action-buttons {
@@ -297,7 +296,7 @@ table.editable-table {
     border-bottom: 1px solid #FFFFFF;
     border-right: 1px solid #FFFFFF;
     color: #FFFFFF;
-    font-size: 0.9rem;
+    font-size: clamp(11px, 1.1vw, 14px);
     font-weight: bold;
 }
 
@@ -312,7 +311,7 @@ table.editable-table {
 }
 
 .production-view-table thead th:nth-child(1) {
-    width: 6%;
+    width: 8%;
 }
 
 .production-view-table thead th:nth-child(2) {
@@ -320,11 +319,11 @@ table.editable-table {
 }
 
 .production-view-table thead th:nth-child(3) {
-    width: 8%;
+    width: 22%;
 }
 
 .production-view-table thead th:nth-child(4) {
-    width: 27%;
+    width: 8%;
 }
 
 .production-view-table thead th:nth-child(5) {
@@ -344,11 +343,7 @@ table.editable-table {
 }
 
 .production-view-table thead th:nth-child(9) {
-    width: 8%;
-}
-
-.production-view-table thead th:nth-child(10) {
-    width: 23%;
+    width: auto;
 }
 
 .data-cell {
@@ -375,7 +370,7 @@ table.editable-table {
     color: #FFFFFF;
     font-family: 'BMDOHYEON', sans-serif;
     font-weight: bold;
-    font-size: 0.9rem;
+    font-size: clamp(11px, 1.1vw, 14px);
     box-sizing: border-box;
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -477,3 +472,58 @@ table.editable-table {
 .choice-buttons .common-box i {
     margin-right: 10px;
 }
+
+/* production-view-table의 td에 position 속성 추가 */
+.production-view-table td {
+    position: relative; /* 자식 요소의 absolute 위치 기준이 됨 */
+}
+
+/* 유효성 검사 안내 메시지 스타일 */
+.validation-message {
+    position: absolute;
+    top: -28px; /* 메시지가 두 줄이 될 경우를 대비해 조금 더 위로 조정 */
+    left: 0;
+    width: 100%;
+    box-sizing: border-box; /* 너비 계산이 깨지지 않도록 추가 */
+    background-color: #d35400;
+    color: white;
+    padding: 4px 5px;
+    border-radius: 4px;
+    text-align: center;
+    z-index: 10;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+    
+    /* ✨ 1. clamp() 함수로 유동적인 폰트 크기 적용 */
+    font-size: clamp(2px, 1.2vw, 12px);
+
+    /* ✨ 2. nowrap을 삭제하여 공간이 부족하면 자동으로 줄바꿈되도록 허용 */
+    white-space: normal;
+    line-height: 1.2; /* 줄바꿈 시 줄 간격 조절 */
+    pointer-events: none; /* 메시지가 다른 입력을 방해하지 않도록 함 */
+}
+
+/* 메시지가 보여질 때의 스타일 */
+.validation-message.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* --- common.css 또는 header.css 파일 등에 적용 --- */
+
+/* 기존의 .font-15pt, .font-35pt 규칙을 아래 코드로 교체합니다. */
+
+/* 약 15pt에 해당하는 유동형 폰트 크기 */
+.font-15pt {
+    /* 최소 13px, 이상적으로는 화면 너비의 1.2%, 최대 18px */
+    font-size: clamp(13px, 1.2vw, 18px);
+}
+
+/* 약 35pt에 해당하는 유동형 폰트 크기 */
+.font-35pt {
+    /* 최소 28px, 이상적으로는 화면 너비의 3.5%, 최대 47px */
+    font-size: clamp(25px, 3.5vw, 35px);
+}
+
+/* (참고) 다른 폰트 크기 클래스가 있다면 동일한 방식으로 clamp()로 변경할 수 있습니다. */
